@@ -32,11 +32,12 @@ client.on('guildCreate', async (guild) => {
             .setDescription('Olá! Sou o **Orbit™** e estou aqui para ajudar!\n\nUse `bt!ajuda` para ver todos os meus comandos.')
             .setColor(0x00008B) // Azul escuro
             .addFields(
-                { name: '📚 Site', value: 'https://nixbot.vip', inline: true },
-                { name: '🆘 Suporte', value: 'https://discord.gg/nixbots', inline: true },
+                { name: '📚 Site', value: 'em
+                    breve', inline: true },
+                { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true },
                 { name: '📝 Prefixo', value: '`bt!`', inline: true }
             )
-            .setFooter({ text: 'Orbit™ • Sistema de Logs' })
+            .setFooter({ text: 'Orbit™ •' })
             .setTimestamp();
         
         await generalChannel.send({ embeds: [embed] });
@@ -98,14 +99,14 @@ client.once('ready', () => {
 // ========== ATUALIZAR STATUS AUTOMATICAMENTE ==========
 setInterval(() => {
     if (client.isReady()) {
-        client.user.setActivity(`${client.guilds.cache.size} servidores | to!ajuda`, { type: 0 });
+        client.user.setActivity(`${client.guilds.cache.size} servidores | bt!ajuda`, { type: 0 });
     }
 }, 60000); // Atualiza a cada 1 minuto
 
 // ========== COMANDOS SIMPLES ==========
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
-    if (!message.content.startsWith('to!')) return;
+    if (!message.content.startsWith('bt!')) return;
     
     const args = message.content.slice(3).trim().split(/ +/);
     const command = args.shift().toLowerCase();
@@ -128,7 +129,7 @@ client.on('messageCreate', async (message) => {
                 { name: '📌 `bt!botinfo`', value: 'Mostra informações do bot', inline: false },
                 { name: '🔗 Links', value: 'Em Breve | [Suporte](https://discord.gg/pPnSZEYGZ6)', inline: false }
             )
-            .setFooter({ text: 'Orbit™ • Sistema de Logs' })
+            .setFooter({ text: 'Orbit™ •' })
             .setTimestamp();
         
         await message.reply({ embeds: [embed] });
@@ -165,7 +166,7 @@ client.on('messageCreate', async (message) => {
                 { name: '🌐 Site', value: 'em breve', inline: true },
                 { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true }
             )
-            .setFooter({ text: 'Orbit™ • Sistema de Logs' });
+            .setFooter({ text: 'Orbit™ •' });
         
         await message.reply({ embeds: [embed] });
     }
