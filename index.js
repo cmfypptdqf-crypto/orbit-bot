@@ -29,7 +29,7 @@ client.on('guildCreate', async (guild) => {
     if (generalChannel) {
         const embed = new EmbedBuilder()
             .setTitle('🎉 Obrigado por me adicionar!')
-            .setDescription('Olá! Sou o **Orbit™** e estou aqui para ajudar!\n\nUse `to!ajuda` para ver todos os meus comandos.')
+            .setDescription('Olá! Sou o **Orbit™** e estou aqui para ajudar!\n\nUse `bt!ajuda` para ver todos os meus comandos.')
             .setColor(0x00008B) // Azul escuro
             .addFields(
                 { name: '📚 Site', value: 'https://nixbot.vip', inline: true },
