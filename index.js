@@ -32,7 +32,7 @@ client.on('guildCreate', async (guild) => {
             .setDescription('Olá! Sou o **Orbit™** e estou aqui para ajudar!\n\nUse `bt!ajuda` para ver todos os meus comandos.')
             .setColor(0x00008B) // Azul escuro
             .addFields(
-                { name: '📚 Site', value: 'em breve', inline: true },
+                { name: '📚 Site', value: 'https://orbitbot-theta.vercel.app/', inline: true },
                 { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true },
                 { name: '📝 Prefixo', value: '`bt!`', inline: true }
             )
@@ -162,7 +162,7 @@ client.on('messageCreate', async (message) => {
                 { name: '👥 Usuários vistos', value: `${client.users.cache.size}`, inline: true },
                 { name: '📅 Criado em', value: client.user.createdAt.toLocaleDateString(), inline: true },
                 { name: '🔗 Prefixo', value: '`bt!`', inline: true },
-                { name: '🌐 Site', value: 'em breve', inline: true },
+                { name: '🌐 Site', value: 'https://orbitbot-theta.vercel.app/', inline: true },
                 { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true }
             )
             .setFooter({ text: 'Orbit™ •' });
