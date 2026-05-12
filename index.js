@@ -67,7 +67,7 @@ client.on('guildDelete', (guild) => {
     console.log(`❌ Orbit™ removido do servidor: ${guild.name} (${guild.id})`);
     
     // Log no seu servidor de suporte
-    const logChannel = client.channels.cache.get('SEU_CANAL_LOG_ID');
+    const logChannel = client.channels.cache.get('1503569620311740597');
     if (logChannel) {
         const embedLog = new EmbedBuilder()
             .setTitle('📤 Orbit™ Removido de Servidor')
