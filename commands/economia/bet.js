@@ -96,7 +96,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(cor)
-            .setTitle('🎰 ROÇADA DA SORTE 🎰')
+            .setTitle('🎰 RODADA DA SORTE 🎰')
             .setDescription(`┌───┬───┬───┐\n│ ${slot1} │ ${slot2} │ ${slot3} │\n└───┴───┴───┘`)
             .addFields(
                 { name: '📊 Resultado', value: resultado, inline: false },
