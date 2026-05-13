@@ -1,23 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder, version } = require('discord.js');
+const { EmbedBuilder, version } = require('discord.js');
 const os = require('os');
 
 module.exports = {
     name: 'botinfo',
     aliases: ['bi', 'infobot', 'about'],
     
-    slashData: new SlashCommandBuilder()
-        .setName('botinfo')
-        .setDescription('Mostra informações detalhadas do Orbit™'),
-    
-    async executeSlash(interaction, client) {
-        await this.showBotInfo(interaction, client);
-    },
-    
     async executePrefix(message, args, client) {
-        await this.showBotInfo(message, client);
-    },
-    
-    async showBotInfo(context, client) {
         // Calcular tempo de atividade
         const uptime = process.uptime();
         const days = Math.floor(uptime / 86400);
@@ -39,15 +27,18 @@ module.exports = {
         const totalChannels = client.channels.cache.size;
         const totalCommands = client.commands.size;
         
-        // Comandos slash registrados
-        const slashCommandsCount = Array.from(client.commands.values()).filter(cmd => cmd.slashData).length;
-        
         // Ping
         const ping = Math.round(client.ws.ping);
         
-        // Informações do sistema
+        // Informações do sistema (com tratamento de erro)
         const cpuCores = os.cpus().length;
-        const cpuModel = os.cpus()[0].model.split('@')[0].trim();
+        let cpuModel = 'Desconhecido';
+        
+        if (os.cpus() && os.cpus().length > 0 && os.cpus()[0] && os.cpus()[0].model) {
+            cpuModel = os.cpus()[0].model.split('@')[0].trim();
+            if (cpuModel.length > 30) cpuModel = cpuModel.substring(0, 30) + '...';
+        }
+        
         const osType = `${os.type()} ${os.release()}`;
         const nodeVersion = process.version;
         const discordVersion = version;
@@ -63,12 +54,12 @@ module.exports = {
                 { name: '📁 Servidores', value: `\`${totalGuilds}\``, inline: true },
                 { name: '👥 Usuários', value: `\`${totalUsers}\``, inline: true },
                 { name: '💬 Canais', value: `\`${totalChannels}\``, inline: true },
-                { name: '📦 Comandos', value: `\`${totalCommands}\` (${slashCommandsCount} slash)`, inline: true },
+                { name: '📦 Comandos', value: `\`${totalCommands}\``, inline: true },
                 { name: '🏓 Ping', value: `\`${ping}ms\``, inline: true },
                 { name: '⏰ Uptime', value: `\`${uptimeString}\``, inline: true },
                 
                 { name: '💻 **Sistema**', value: 'ㅤ', inline: false },
-                { name: '🖥️ CPU', value: `\`${cpuModel}\`\n\`${cpuCores} núcleos\``, inline: true },
+                { name: '🖥️ CPU', value: `\`${cpuModel}\`\n\`${cpuCores} núcleo(s)\``, inline: true },
                 { name: '💾 Memória', value: `\`Heap: ${heapUsed}MB / ${heapTotal}MB\`\n\`RSS: ${rss}MB\``, inline: true },
                 { name: '🔄 Node.js', value: `\`${nodeVersion}\``, inline: true },
                 { name: '🤖 Discord.js', value: `\`v${discordVersion}\``, inline: true },
@@ -82,17 +73,6 @@ module.exports = {
             .setFooter({ text: `Orbit™ • ID: ${client.user.id}` })
             .setTimestamp();
         
-        // Adicionar informações do desenvolvedor
-        const owner = await client.users.fetch('1486610034380111935').catch(() => null);
-        if (owner) {
-            embed.addFields({ name: '👨‍💻 Desenvolvedor', value: `${owner.tag}`, inline: true });
-        }
-        
-        // Enviar resposta
-        if (context.reply) {
-            await context.reply({ embeds: [embed] });
-        } else {
-            await context.channel.send({ embeds: [embed] });
-        }
+        await message.reply({ embeds: [embed] });
     }
 };
