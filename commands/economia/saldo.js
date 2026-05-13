@@ -12,11 +12,10 @@ function getDB() {
 }
 
 module.exports = {
-    name: 'balance',
-    aliases: ['bal', 'saldo', 'carteira'],
+    name: 'bal',
+    aliases: ['atm', 'saldo', 'balance'],
     
     async executePrefix(message, args, client) {
-        const db = getDB();
         let user = message.author;
         
         if (args[0]) {
@@ -24,17 +23,35 @@ module.exports = {
             if (mention) user = mention;
         }
         
-        const carteira = db[`carteira_${user.id}_${message.guild.id}`] || 0;
-        const banco = db[`banco_${user.id}_${message.guild.id}`] || 0;
+        const db = getDB();
+        let totalCarteira = 0;
+        let totalBanco = 0;
+        let servidoresEncontrados = [];
+        
+        // Percorrer todas as keys do database
+        for (const [key, value] of Object.entries(db)) {
+            if (key.startsWith('carteira_') && key.includes(user.id)) {
+                const parts = key.split('_');
+                const guildId = parts[2];
+                const bankKey = `banco_${user.id}_${guildId}`;
+                
+                totalCarteira += value || 0;
+                totalBanco += db[bankKey] || 0;
+                servidoresEncontrados.push(guildId);
+            }
+        }
+        
+        const totalGlobal = totalCarteira + totalBanco;
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle(`💰 Saldo de ${user.username}`)
+            .setTitle(`🌍 Saldo Global de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .addFields(
-                { name: '💵 Carteira', value: `${carteira} moedas`, inline: true },
-                { name: '🏦 Banco', value: `${banco} moedas`, inline: true },
-                { name: '📊 Total', value: `${carteira + banco} moedas`, inline: true }
+                { name: '💵 Carteira Global', value: `${totalCarteira.toLocaleString()} moedas`, inline: true },
+                { name: '🏦 Banco Global', value: `${totalBanco.toLocaleString()} moedas`, inline: true },
+                { name: '📊 Patrimônio Global', value: `${totalGlobal.toLocaleString()} moedas`, inline: true },
+                { name: '🌍 Servidores', value: `${servidoresEncontrados.length} servidor(es)`, inline: true }
             )
             .setTimestamp();
         
