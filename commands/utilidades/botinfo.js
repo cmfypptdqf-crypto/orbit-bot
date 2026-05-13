@@ -46,7 +46,7 @@ module.exports = {
         // Criar embed
         const embed = new EmbedBuilder()
             .setTitle('🤖 Orbit™ - Informações do Bot')
-            .setDescription('Bot multifuncional para Discord com sistema de economia e utilidades')
+            .setDescription('Bot multifuncional para Discord')
             .setColor(0x00008B)
             .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 1024 }))
             .addFields(
