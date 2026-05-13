@@ -16,7 +16,7 @@ function saveDB(data) {
 }
 
 // 🔧 CONFIGURE AQUI O ID DO CARGO PERMITIDO
-const CARGO_PERMITIDO_ID = 'ID_DO_CARGO_AQUI'; // ← COLOQUE O ID DO CARGO AQUI
+const CARGO_PERMITIDO_ID = '1504261562498814042'; // ← COLOQUE O ID DO CARGO AQUI
 
 module.exports = {
     name: 'addmoedas',
