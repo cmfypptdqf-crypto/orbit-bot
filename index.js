@@ -98,11 +98,8 @@ client.once('ready', async () => {
     console.log(`✅ Orbit™ online como ${client.user.tag}`);
     console.log(`📊 Está em ${client.guilds.cache.size} servidores`);
     
-    // Carregar comandos
+    // 
     loadCommands();
-    
-    // Registrar slash commands
-    await registerSlashCommands();
     
     // Status do bot
     client.user.setPresence({
