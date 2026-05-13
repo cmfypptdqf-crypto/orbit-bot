@@ -1,11 +1,22 @@
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const fs = require('fs');
+const path = require('path');
+
+const dbPath = path.join(__dirname, '..', '..', 'database.json');
+
+function getDB() {
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify({}));
+    }
+    return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+}
 
 module.exports = {
     name: 'balance',
     aliases: ['bal', 'saldo', 'carteira'],
     
     async executePrefix(message, args, client) {
+        const db = getDB();
         let user = message.author;
         
         if (args[0]) {
@@ -13,9 +24,8 @@ module.exports = {
             if (mention) user = mention;
         }
         
-        // ✅ Corrigido: fetch() ao invés de get()
-        let carteira = await db.fetch(`carteira_${user.id}`) || 0;
-        let banco = await db.fetch(`banco_${user.id}`) || 0;
+        const carteira = db[`carteira_${user.id}_${message.guild.id}`] || 0;
+        const banco = db[`banco_${user.id}_${message.guild.id}`] || 0;
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
