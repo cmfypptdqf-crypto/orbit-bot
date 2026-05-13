@@ -13,11 +13,12 @@ module.exports = {
             if (mention) user = mention;
         }
         
-        let carteira = db.get(`carteira_${user.id}`) || 0;
-        let banco = db.get(`banco_${user.id}`) || 0;
+        // ✅ Corrigido: fetch() ao invés de get()
+        let carteira = await db.fetch(`carteira_${user.id}`) || 0;
+        let banco = await db.fetch(`banco_${user.id}`) || 0;
         
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
+            .setColor(0x00FF00)
             .setTitle(`💰 Saldo de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .addFields(
