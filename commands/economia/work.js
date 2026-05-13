@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
+const cooldowns = new Map();
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
@@ -16,48 +17,50 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'work',
-    aliases: ['trabalhar'],
+    name: 'trabalharglobal',
+    aliases: ['workglobal', 'trabglobal'],
     
     async executePrefix(message, args, client) {
-        const db = getDB();
         const userId = message.author.id;
-        const guildId = message.guild.id;
-        const now = Date.now();
-        const cooldown = 3600000; // 1 hora
+        const cooldownKey = `work_global_${userId}`;
+        const lastWork = cooldowns.get(cooldownKey);
         
-        const lastWork = db[`work_${userId}_${guildId}`];
-        
-        if (lastWork && now - lastWork < cooldown) {
-            const remaining = new Date(cooldown - (now - lastWork));
-            const minutes = remaining.getUTCMinutes();
-            return message.reply(`⏰ Você já trabalhou recentemente! Volte em ${minutes} minutos.`);
+        // Cooldown global de 2 horas (para evitar spam em vários servidores)
+        if (lastWork && Date.now() - lastWork < 7200000) {
+            const remaining = Math.ceil((7200000 - (Date.now() - lastWork)) / 60000);
+            return message.reply(`⏰ Você já trabalhou globalmente! Volte em **${remaining} minutos**.`);
         }
         
         const trabalhos = [
-            { nome: '💻 Programador', ganho: 200 },
-            { nome: '🍕 Entregador de Pizza', ganho: 150 },
-            { nome: '📚 Professor', ganho: 180 },
-            { nome: '🏪 Vendedor', ganho: 120 },
-            { nome: '🎨 Designer', ganho: 220 },
-            { nome: '🔧 Mecânico', ganho: 160 }
+            { nome: '💻 Programador Global', ganho: [100, 300] },
+            { nome: '🌍 Empreendedor', ganho: [150, 400] },
+            { nome: '✈️ Viajante', ganho: [80, 250] },
+            { nome: '📊 Consultor', ganho: [120, 350] },
+            { nome: '🎓 Professor Global', ganho: [90, 280] }
         ];
         
         const trabalho = trabalhos[Math.floor(Math.random() * trabalhos.length)];
-        const ganho = trabalho.ganho + Math.floor(Math.random() * 100);
+        const ganho = Math.floor(Math.random() * (trabalho.ganho[1] - trabalho.ganho[0] + 1) + trabalho.ganho[0]);
         
-        // Atualizar carteira
+        // Adicionar ao servidor atual
+        const db = getDB();
+        const guildId = message.guild.id;
         const walletKey = `carteira_${userId}_${guildId}`;
-        db[walletKey] = (db[walletKey] || 0) + ganho;
-        db[`work_${userId}_${guildId}`] = now;
         
+        db[walletKey] = (db[walletKey] || 0) + ganho;
         saveDB(db);
         
+        cooldowns.set(cooldownKey, Date.now());
+        
         const embed = new EmbedBuilder()
-            .setColor(0x00AAFF)
-            .setTitle('💼 Trabalho Concluído!')
+            .setColor(0x00FF00)
+            .setTitle('🌍 Trabalho  realizado!')
             .setDescription(`Você trabalhou como **${trabalho.nome}** e ganhou **${ganho} moedas**!`)
-            .setFooter({ text: `Use ${client.prefix}daily para bônus diário` });
+            .addFields(
+                { name: '💰 Adicionado no servidor', value: message.guild.name, inline: true },
+                { name: '💰 Novo saldo local', value: `${db[walletKey]} moedas`, inline: true }
+            )
+            .setFooter({ text: 'Cooldown global: 2 horas' });
         
         await message.reply({ embeds: [embed] });
     }
