@@ -1,5 +1,6 @@
-// index.js
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const config = require('./config.json');
 
 // Criar cliente do bot
@@ -12,13 +13,120 @@ const client = new Client({
     ]
 });
 
+client.commands = new Collection();
+client.prefix = 'bt!';
+
+// ========== CARREGAR COMANDOS DA PASTA ==========
+function loadCommands() {
+    const commandsPath = path.join(__dirname, 'commands');
+    const commandFolders = fs.readdirSync(commandsPath);
+    
+    for (const folder of commandFolders) {
+        const folderPath = path.join(commandsPath, folder);
+        const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
+        
+        for (const file of commandFiles) {
+            const filePath = path.join(folderPath, file);
+            const command = require(filePath);
+            
+            if (command.name) {
+                client.commands.set(command.name, command);
+                console.log(`✅ Comando carregado: ${command.name} (${folder})`);
+            }
+        }
+    }
+}
+
+// ========== REGISTRAR SLASH COMMANDS ==========
+async function registerSlashCommands() {
+    const commands = [];
+    
+    client.commands.forEach(cmd => {
+        if (cmd.slashData) {
+            commands.push(cmd.slashData.toJSON());
+        }
+    });
+    
+    const rest = new REST({ version: '10' }).setToken(config.token);
+    
+    try {
+        console.log('🔄 Registrando slash commands...');
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commands }
+        );
+        console.log(`✅ ${commands.length} slash commands registrados!`);
+    } catch (error) {
+        console.error('❌ Erro ao registrar slash commands:', error);
+    }
+}
+
+// ========== QUANDO O BOT FICA ONLINE ==========
+client.once('ready', async () => {
+    console.log(`✅ Orbit™ online como ${client.user.tag}`);
+    console.log(`📊 Está em ${client.guilds.cache.size} servidores`);
+    
+    // Carregar comandos
+    loadCommands();
+    
+    // Registrar slash commands
+    await registerSlashCommands();
+    
+    // Status do bot
+    client.user.setPresence({
+        activities: [{ name: `${client.guilds.cache.size} servidores | bt!ajuda`, type: 0 }],
+        status: 'online'
+    });
+});
+
+// ========== ATUALIZAR STATUS ==========
+setInterval(() => {
+    if (client.isReady()) {
+        client.user.setActivity(`${client.guilds.cache.size} servidores | bt!ajuda`, { type: 0 });
+    }
+}, 60000);
+
+// ========== HANDLER DE SLASH COMMANDS ==========
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+    
+    const command = client.commands.get(interaction.commandName);
+    if (!command) return;
+    
+    try {
+        await command.executeSlash(interaction, client);
+    } catch (error) {
+        console.error(`❌ Erro no slash command ${interaction.commandName}:`, error);
+        await interaction.reply({ content: '❌ Ocorreu um erro ao executar este comando!', ephemeral: true });
+    }
+});
+
+// ========== HANDLER DE COMANDOS POR PREFIXO ==========
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+    if (!message.content.startsWith(client.prefix)) return;
+    
+    const args = message.content.slice(client.prefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+    
+    const command = client.commands.get(commandName);
+    if (!command) return;
+    
+    try {
+        await command.executePrefix(message, args, client);
+    } catch (error) {
+        console.error(`❌ Erro no comando prefixo ${commandName}:`, error);
+        await message.reply('❌ Ocorreu um erro ao executar este comando!');
+    }
+});
+
 // ========== QUANDO O BOT É ADICIONADO EM UM SERVIDOR ==========
 client.on('guildCreate', async (guild) => {
     console.log(`✅ Orbit™ adicionado no servidor: ${guild.name} (${guild.id})`);
     console.log(`👑 Dono: ${guild.ownerId}`);
     console.log(`👥 Membros: ${guild.memberCount}`);
     
-    // Tentar enviar mensagem no canal geral do servidor
+    // Tentar enviar mensagem no canal geral
     const channels = guild.channels.cache;
     let generalChannel = channels.find(ch => ch.name === 'geral' || ch.name === 'general' || ch.name === 'chat');
     
@@ -30,7 +138,7 @@ client.on('guildCreate', async (guild) => {
         const embed = new EmbedBuilder()
             .setTitle('🎉 Obrigado por me adicionar!')
             .setDescription('Olá! Sou o **Orbit™** e estou aqui para ajudar!\n\nUse `bt!ajuda` para ver todos os meus comandos.')
-            .setColor(0x00008B) // Azul escuro
+            .setColor(0x00008B)
             .addFields(
                 { name: '📚 Site', value: 'https://orbitbot-theta.vercel.app/', inline: true },
                 { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true },
@@ -42,18 +150,17 @@ client.on('guildCreate', async (guild) => {
         await generalChannel.send({ embeds: [embed] });
     }
     
-    // Log no seu servidor de suporte
-    const logChannel = client.channels.cache.get('1503569620311740597'); // Coloque o ID do canal
+    // Log no servidor de suporte
+    const logChannel = client.channels.cache.get('1503569620311740597');
     if (logChannel) {
         const embedLog = new EmbedBuilder()
             .setTitle('📥 Orbit™ Adicionado em Novo Servidor')
-            .setColor(0x00008B) // Azul escuro
+            .setColor(0x00008B)
             .addFields(
                 { name: '📌 Servidor', value: guild.name, inline: true },
                 { name: '🆔 ID', value: guild.id, inline: true },
                 { name: '👥 Membros', value: `${guild.memberCount}`, inline: true },
-                { name: '👑 Dono', value: `<@${guild.ownerId}>`, inline: true },
-                { name: '📅 Data', value: new Date().toLocaleString(), inline: true }
+                { name: '👑 Dono', value: `<@${guild.ownerId}>`, inline: true }
             )
             .setTimestamp();
         
@@ -61,21 +168,19 @@ client.on('guildCreate', async (guild) => {
     }
 });
 
-// ========== QUANDO O BOT É REMOVIDO DE UM SERVIDOR ==========
+// ========== QUANDO O BOT É REMOVIDO ==========
 client.on('guildDelete', (guild) => {
     console.log(`❌ Orbit™ removido do servidor: ${guild.name} (${guild.id})`);
     
-    // Log no seu servidor de suporte
     const logChannel = client.channels.cache.get('1503569620311740597');
     if (logChannel) {
         const embedLog = new EmbedBuilder()
             .setTitle('📤 Orbit™ Removido de Servidor')
-            .setColor(0x00008B) // Azul escuro
+            .setColor(0x00008B)
             .addFields(
                 { name: '📌 Servidor', value: guild.name, inline: true },
                 { name: '🆔 ID', value: guild.id, inline: true },
-                { name: '👥 Membros', value: `${guild.memberCount}`, inline: true },
-                { name: '📅 Data', value: new Date().toLocaleString(), inline: true }
+                { name: '👥 Membros', value: `${guild.memberCount}`, inline: true }
             )
             .setTimestamp();
         
@@ -83,93 +188,5 @@ client.on('guildDelete', (guild) => {
     }
 });
 
-// ========== QUANDO O BOT FICA ONLINE ==========
-client.once('ready', () => {
-    console.log(`✅ Orbit™ online como ${client.user.tag}`);
-    console.log(`📊 Está em ${client.guilds.cache.size} servidores`);
-    
-    // Status do bot
-    client.user.setPresence({
-        activities: [{ name: `${client.guilds.cache.size} servidores | bt!ajuda`, type: 0 }],
-        status: 'online'
-    });
-});
-
-// ========== ATUALIZAR STATUS AUTOMATICAMENTE ==========
-setInterval(() => {
-    if (client.isReady()) {
-        client.user.setActivity(`${client.guilds.cache.size} servidores | bt!ajuda`, { type: 0 });
-    }
-}, 60000); // Atualiza a cada 1 minuto
-
-// ========== COMANDOS SIMPLES ==========
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-    if (!message.content.startsWith('bt!')) return;
-    
-    const args = message.content.slice(3).trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-    
-    // Comando: ping
-    if (command === 'ping') {
-        const latency = Date.now() - message.createdTimestamp;
-        await message.reply(`🏓 Pong! Latência: ${latency}ms`);
-    }
-    
-    // Comando: ajuda
-    else if (command === 'ajuda') {
-        const embed = new EmbedBuilder()
-            .setTitle('📚 Orbit™ - Comandos')
-            .setDescription('Aqui estão meus comandos disponíveis:')
-            .setColor(0x00008B) // Azul escuro
-            .addFields(
-                { name: '📌 `bt!ping`', value: 'Verifica a latência do bot', inline: false },
-                { name: '📌 `bt!servidor`', value: 'Mostra informações do servidor', inline: false },
-                { name: '📌 `bt!botinfo`', value: 'Mostra informações do bot', inline: false },
-                { name: '🔗 Links', value: 'Em Breve | [Suporte](https://discord.gg/pPnSZEYGZ6)', inline: false }
-            )
-            .setFooter({ text: 'Orbit™ •' })
-            .setTimestamp();
-        
-        await message.reply({ embeds: [embed] });
-    }
-    
-    // Comando: servidor
-    else if (command === 'servidor') {
-        const embed = new EmbedBuilder()
-            .setTitle(`📊 ${message.guild.name}`)
-            .setThumbnail(message.guild.iconURL())
-            .addFields(
-                { name: '👑 Dono', value: `<@${message.guild.ownerId}>`, inline: true },
-                { name: '👥 Membros', value: `${message.guild.memberCount}`, inline: true },
-                { name: '📅 Criado em', value: message.guild.createdAt.toLocaleDateString(), inline: true },
-                { name: '💬 Canais', value: `${message.guild.channels.cache.size}`, inline: true },
-                { name: '🤖 Cargos', value: `${message.guild.roles.cache.size}`, inline: true }
-            )
-            .setColor(0x00008B); // Azul escuro
-        
-        await message.reply({ embeds: [embed] });
-    }
-    
-    // Comando: botinfo
-    else if (command === 'botinfo') {
-        const embed = new EmbedBuilder()
-            .setTitle('🤖 Informações do Orbit™')
-            .setDescription('Bot multifuncional para Discord')
-            .setColor(0x00008B) // Azul escuro
-            .addFields(
-                { name: '📊 Servidores', value: `${client.guilds.cache.size}`, inline: true },
-                { name: '👥 Usuários vistos', value: `${client.users.cache.size}`, inline: true },
-                { name: '📅 Criado em', value: client.user.createdAt.toLocaleDateString(), inline: true },
-                { name: '🔗 Prefixo', value: '`bt!`', inline: true },
-                { name: '🌐 Site', value: 'https://orbitbot-theta.vercel.app/', inline: true },
-                { name: '🆘 Suporte', value: 'https://discord.gg/pPnSZEYGZ6', inline: true }
-            )
-            .setFooter({ text: 'Orbit™ •' });
-        
-        await message.reply({ embeds: [embed] });
-    }
-});
-
-// ========== LOGAR O BOT ==========
+// ========== LOGAR ==========
 client.login(config.token);
