@@ -2,36 +2,30 @@ const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 module.exports = {
-    name: 'daily',
-    aliases: ['diario', 'bonus'],
+    name: 'balance',
+    aliases: ['bal', 'saldo', 'carteira'],
     
-    async executePrefix(message) {
-        // ✅ get() → fetch()
-        const lastDaily = await db.fetch(`daily_${message.author.id}`);
-        const now = Date.now();
-        const cooldown = 86400000; // 24 horas
+    async executePrefix(message, args, client) {
+        let user = message.author;
         
-        if (lastDaily && now - lastDaily < cooldown) {
-            const remaining = cooldown - (now - lastDaily);
-            const hours = Math.floor(remaining / 3600000);
-            const minutes = Math.floor((remaining % 3600000) / 60000);
-            return message.reply(`⏰ Você já resgatou seu daily! Próximo em ${hours}h ${minutes}m.`);
+        if (args[0]) {
+            const mention = message.mentions.users.first();
+            if (mention) user = mention;
         }
         
-        const reward = 500;
-        
-        // ✅ add() → precisa usar math + set, ou subtract/add manual
-        let carteiraAtual = await db.fetch(`carteira_${message.author.id}`) || 0;
-        await db.set(`carteira_${message.author.id}`, carteiraAtual + reward);
-        
-        // ✅ set continua igual
-        await db.set(`daily_${message.author.id}`, now);
+        let carteira = db.get(`carteira_${user.id}_${message.guild.id}`) || 0;
+        let banco = db.get(`banco_${user.id}_${message.guild.id}`) || 0;
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
-            .setTitle('🎉 Bônus Diário!')
-            .setDescription(`Você recebeu **${reward} moedas**!`)
-            .setFooter({ text: 'Volte amanhã para mais!' });
+            .setColor(0x00FF00)
+            .setTitle(`💰 Saldo de ${user.username}`)
+            .setThumbnail(user.displayAvatarURL())
+            .addFields(
+                { name: '💵 Carteira', value: `${carteira} moedas`, inline: true },
+                { name: '🏦 Banco', value: `${banco} moedas`, inline: true },
+                { name: '📊 Total', value: `${carteira + banco} moedas`, inline: true }
+            )
+            .setTimestamp();
         
         await message.reply({ embeds: [embed] });
     }
