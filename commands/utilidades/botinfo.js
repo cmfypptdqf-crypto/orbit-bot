@@ -65,9 +65,7 @@ module.exports = {
                 { name: '🤖 Discord.js', value: `\`v${discordVersion}\``, inline: true },
                 { name: '💿 Sistema', value: `\`${osType}\``, inline: true },
                 
-                { name: '🔗 **Links**', value: 'ㅤ', inline: false },
-                { name: '🌐 Site', value: '[Clique aqui](https://orbitbot-theta.vercel.app/)', inline: true },
-                { name: '🆘 Suporte', value: '[Clique aqui](https://discord.gg/pPnSZEYGZ6)', inline: true },
+                { name: '🔗 **Links**', value: '[WebSite](https://orbitbot-theta.vercel.app/) | [Suporte](https://discord.gg/pPnSZEYGZ6) | [Invite](https://discord.com/oauth2/authorize?client_id=1502920914730483844&scope=bot%20applications.commands&permissions=8)', ㅤinline: false },
                 { name: '📝 Prefixo', value: `\`${client.prefix}\``, inline: true }
             )
             .setFooter({ text: `Orbit™ • ID: ${client.user.id}` })
