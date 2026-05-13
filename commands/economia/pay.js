@@ -16,39 +16,78 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'pagar',
-    aliases: ['transferir', 'pay'],
+    name: 'transferirglobal',
+    aliases: ['transferirg', 'payglobal', 'enviarglobal'],
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Mencione um usuário para pagar!');
-        if (user.id === message.author.id) return message.reply('❌ Você não pode pagar a si mesmo!');
+        if (!user) return message.reply('❌ Use: `!transferirglobal @user <quantia>`');
+        
+        if (user.id === message.author.id) {
+            return message.reply('❌ Você não pode transferir para si mesmo!');
+        }
         
         const amount = parseInt(args[1]);
-        if (!amount || isNaN(amount)) return message.reply('❌ Digite um valor válido!');
-        if (amount <= 0) return message.reply('❌ Digite um valor positivo!');
+        if (isNaN(amount) || amount <= 0) return message.reply('❌ Digite um valor válido!');
         
         const db = getDB();
         const userId = message.author.id;
         const targetId = user.id;
-        const guildId = message.guild.id;
         
-        const walletKey = `carteira_${userId}_${guildId}`;
-        let carteira = db[walletKey] || 0;
+        // Calcular total global do remetente
+        let senderTotalGlobal = 0;
+        let senderCarteiras = [];
         
-        if (amount > carteira) return message.reply(`❌ Você só tem ${carteira} moedas!`);
+        for (const [key, value] of Object.entries(db)) {
+            if (key.startsWith('carteira_') && key.includes(userId)) {
+                const parts = key.split('_');
+                const guildId = parts[2];
+                const carteira = value || 0;
+                senderTotalGlobal += carteira;
+                senderCarteiras.push({ key, guildId, carteira });
+            }
+        }
         
-        // Transferir
-        db[walletKey] = carteira - amount;
-        db[`carteira_${targetId}_${guildId}`] = (db[`carteira_${targetId}_${guildId}`] || 0) + amount;
+        if (senderTotalGlobal < amount) {
+            return message.reply(`❌ Você só tem ${senderTotalGlobal.toLocaleString()} moedas em todos os servidores!`);
+        }
+        
+        // Escolher de qual servidor tirar as moedas (priorizar servidor com mais moedas)
+        senderCarteiras.sort((a, b) => b.carteira - a.carteira);
+        
+        let restante = amount;
+        for (const sender of senderCarteiras) {
+            if (restante <= 0) break;
+            
+            const disponivel = sender.carteira;
+            const tirar = Math.min(disponivel, restante);
+            
+            db[sender.key] = disponivel - tirar;
+            restante -= tirar;
+        }
+        
+        // Adicionar ao destino (adicionar no servidor atual do comando)
+        const targetGuildId = message.guild.id;
+        const targetWalletKey = `carteira_${targetId}_${targetGuildId}`;
+        db[targetWalletKey] = (db[targetWalletKey] || 0) + amount;
         
         saveDB(db);
         
+        // Calcular novo total do remetente
+        let novoSenderTotal = 0;
+        for (const sender of senderCarteiras) {
+            novoSenderTotal += db[sender.key] || 0;
+        }
+        
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('💸 Transferência realizada!')
-            .setDescription(`Você pagou **${amount} moedas** para ${user.username}`)
-            .setFooter({ text: `Novo saldo: ${db[walletKey]} moedas` });
+            .setTitle('🌍 Transferência Global realizada!')
+            .setDescription(`${message.author} transferiu **${amount.toLocaleString()} moedas** globalmente para ${user}`)
+            .addFields(
+                { name: '💰 Seu novo patrimônio global', value: `${novoSenderTotal.toLocaleString()} moedas`, inline: true },
+                { name: '🏦 Destino', value: `Adicionado ao servidor ${message.guild.name}`, inline: true }
+            )
+            .setTimestamp();
         
         await message.reply({ embeds: [embed] });
     }
