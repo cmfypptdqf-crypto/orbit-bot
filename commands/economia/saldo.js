@@ -13,7 +13,7 @@ function getDB() {
 
 module.exports = {
     name: 'bal',
-    aliases: ['atm', 'saldo', 'balance'],
+    aliases: ['atm', 'saldo', 'balance'k],
     
     async executePrefix(message, args, client) {
         let user = message.author;
@@ -44,14 +44,12 @@ module.exports = {
         const totalGlobal = totalCarteira + totalBanco;
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
-            .setTitle(`🌍 Saldo Global de ${user.username}`)
+            .setColor(0x000008B)
+            .setTitle(`🌍 Saldo de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .addFields(
-                { name: '💵 Carteira Global', value: `${totalCarteira.toLocaleString()} moedas`, inline: true },
-                { name: '🏦 Banco Global', value: `${totalBanco.toLocaleString()} moedas`, inline: true },
-                { name: '📊 Patrimônio Global', value: `${totalGlobal.toLocaleString()} moedas`, inline: true },
-                { name: '🌍 Servidores', value: `${servidoresEncontrados.length} servidor(es)`, inline: true }
+                { name: '💵 Baú', value: `${totalCarteira.toLocaleString()} Orbitas no baú`, inline: true },
+                { name: '🏦 Espaçol', value: `${totalBanco.toLocaleString()} Orbitas no céu`, inline: true }
             )
             .setTimestamp();
         
