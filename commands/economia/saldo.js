@@ -6,51 +6,46 @@ const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({}));
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
     }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
+function saveDB(data) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
 module.exports = {
-    name: 'bal',
-    aliases: ['atm', 'saldo', 'balance'k],
+    name: 'balance',
+    aliases: ['bal', 'saldo', 'carteira'],
     
     async executePrefix(message, args, client) {
-        let user = message.author;
+        const db = getDB();
+        let userId = message.author.id;
         
         if (args[0]) {
             const mention = message.mentions.users.first();
-            if (mention) user = mention;
+            if (mention) userId = mention.id;
         }
         
-        const db = getDB();
-        let totalCarteira = 0;
-        let totalBanco = 0;
-        let servidoresEncontrados = [];
-        
-        // Percorrer todas as keys do database
-        for (const [key, value] of Object.entries(db)) {
-            if (key.startsWith('carteira_') && key.includes(user.id)) {
-                const parts = key.split('_');
-                const guildId = parts[2];
-                const bankKey = `banco_${user.id}_${guildId}`;
-                
-                totalCarteira += value || 0;
-                totalBanco += db[bankKey] || 0;
-                servidoresEncontrados.push(guildId);
-            }
+        if (!db.usuarios[userId]) {
+            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+            saveDB(db);
         }
         
-        const totalGlobal = totalCarteira + totalBanco;
+        const carteira = db.usuarios[userId].carteira || 0;
+        const banco = db.usuarios[userId].banco || 0;
         
         const embed = new EmbedBuilder()
-            .setColor(0x000008B)
-            .setTitle(`🌍 Saldo de ${user.username}`)
-            .setThumbnail(user.displayAvatarURL())
+            .setColor(0x00008B)
+            .setTitle(`💰 Saldo de ${message.author.username}`)
+            .setThumbnail(message.author.displayAvatarURL())
             .addFields(
-                { name: '💵 Baú', value: `${totalCarteira.toLocaleString()} Orbitas no baú`, inline: true },
-                { name: '🏦 Espaçol', value: `${totalBanco.toLocaleString()} Orbitas no céu`, inline: true }
+                { name: '💵 Baú', value: `${carteira.toLocaleString()} orbs`, inline: true },
+                { name: '🏦 Céu', value: `${banco.toLocaleString()} orbs`, inline: true },
+                { name: '📊 Total', value: `${(carteira + banco).toLocaleString()} orbs`, inline: true }
             )
+            .setFooter({ text: '🌍 Economia global - compartilhada em todos servidores' })
             .setTimestamp();
         
         await message.reply({ embeds: [embed] });
