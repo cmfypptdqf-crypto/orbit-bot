@@ -19,22 +19,49 @@ client.prefix = 'bt!';
 // ========== CARREGAR COMANDOS DA PASTA ==========
 function loadCommands() {
     const commandsPath = path.join(__dirname, 'commands');
+    
+    // Verificar se a pasta commands existe
+    if (!fs.existsSync(commandsPath)) {
+        console.log('❌ Pasta "commands" não encontrada!');
+        return;
+    }
+    
     const commandFolders = fs.readdirSync(commandsPath);
     
     for (const folder of commandFolders) {
         const folderPath = path.join(commandsPath, folder);
+        
+        // Verificar se é uma pasta
+        if (!fs.statSync(folderPath).isDirectory()) continue;
+        
         const commandFiles = fs.readdirSync(folderPath).filter(file => file.endsWith('.js'));
         
         for (const file of commandFiles) {
             const filePath = path.join(folderPath, file);
+            
+            // Limpar cache para hot reload (opcional)
+            delete require.cache[require.resolve(filePath)];
+            
             const command = require(filePath);
             
             if (command.name) {
                 client.commands.set(command.name, command);
-                console.log(`✅ Comando carregado: ${command.name} (${folder})`);
+                console.log(`✅ Comando carregado: ${command.name} (${folder}/${file})`);
+                
+                // Carregar aliases se existirem
+                if (command.aliases && Array.isArray(command.aliases)) {
+                    command.aliases.forEach(alias => {
+                        client.commands.set(alias, command);
+                        console.log(`   ↳ Alias: ${alias}`);
+                    });
+                }
+            } else {
+                console.log(`⚠️ Arquivo ${file} não tem propriedade "name"`);
             }
         }
     }
+    
+    console.log(`📦 Total de comandos carregados: ${client.commands.size}`);
 }
 
 // ========== REGISTRAR SLASH COMMANDS ==========
@@ -46,6 +73,11 @@ async function registerSlashCommands() {
             commands.push(cmd.slashData.toJSON());
         }
     });
+    
+    if (commands.length === 0) {
+        console.log('⚠️ Nenhum slash command para registrar');
+        return;
+    }
     
     const rest = new REST({ version: '10' }).setToken(config.token);
     
@@ -91,13 +123,22 @@ client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
     
     const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+    if (!command) {
+        console.log(`⚠️ Comando não encontrado: ${interaction.commandName}`);
+        return;
+    }
     
     try {
         await command.executeSlash(interaction, client);
     } catch (error) {
         console.error(`❌ Erro no slash command ${interaction.commandName}:`, error);
-        await interaction.reply({ content: '❌ Ocorreu um erro ao executar este comando!', ephemeral: true });
+        const errorMsg = '❌ Ocorreu um erro ao executar este comando!';
+        
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: errorMsg, ephemeral: true });
+        } else {
+            await interaction.reply({ content: errorMsg, ephemeral: true });
+        }
     }
 });
 
@@ -122,16 +163,21 @@ client.on('messageCreate', async (message) => {
 
 // ========== QUANDO O BOT É ADICIONADO EM UM SERVIDOR ==========
 client.on('guildCreate', async (guild) => {
-    console.log(`✅ Orbit™ adicionado no servidor: ${guild.name} (${guild.id})`);
+    console.log(`✅ Orbit™ adicionado no servidor: ${guild.name} (${guild.id}`);
     console.log(`👑 Dono: ${guild.ownerId}`);
     console.log(`👥 Membros: ${guild.memberCount}`);
     
     // Tentar enviar mensagem no canal geral
     const channels = guild.channels.cache;
-    let generalChannel = channels.find(ch => ch.name === 'geral' || ch.name === 'general' || ch.name === 'chat');
+    let generalChannel = channels.find(ch => 
+        ch.type === 0 && // GUILD_TEXT
+        (ch.name === 'geral' || ch.name === 'general' || ch.name === 'chat' || ch.name === '💬-chat')
+    );
     
     if (!generalChannel) {
-        generalChannel = channels.find(ch => ch.type === 0 && ch.permissionsFor(guild.members.me).has('SendMessages'));
+        generalChannel = channels.find(ch => 
+            ch.type === 0 && ch.permissionsFor(guild.members.me).has('SendMessages')
+        );
     }
     
     if (generalChannel) {
@@ -147,7 +193,7 @@ client.on('guildCreate', async (guild) => {
             .setFooter({ text: 'Orbit™ •' })
             .setTimestamp();
         
-        await generalChannel.send({ embeds: [embed] });
+        await generalChannel.send({ embeds: [embed] }).catch(console.error);
     }
     
     // Log no servidor de suporte
@@ -164,7 +210,7 @@ client.on('guildCreate', async (guild) => {
             )
             .setTimestamp();
         
-        logChannel.send({ embeds: [embedLog] });
+        logChannel.send({ embeds: [embedLog] }).catch(console.error);
     }
 });
 
@@ -184,8 +230,17 @@ client.on('guildDelete', (guild) => {
             )
             .setTimestamp();
         
-        logChannel.send({ embeds: [embedLog] });
+        logChannel.send({ embeds: [embedLog] }).catch(console.error);
     }
+});
+
+// ========== TRATAMENTO DE ERROS GLOBAIS ==========
+process.on('unhandledRejection', (error) => {
+    console.error('❌ Erro não tratado (Promise):', error);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Erro não tratado (Exception):', error);
 });
 
 // ========== LOGAR ==========
