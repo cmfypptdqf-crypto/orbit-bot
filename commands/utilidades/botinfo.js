@@ -83,7 +83,7 @@ module.exports = {
             .setTimestamp();
         
         // Adicionar informações do desenvolvedor
-        const owner = await client.users.fetch('SEU_ID_AQUI').catch(() => null);
+        const owner = await client.users.fetch('1486610034380111935').catch(() => null);
         if (owner) {
             embed.addFields({ name: '👨‍💻 Desenvolvedor', value: `${owner.tag}`, inline: true });
         }
