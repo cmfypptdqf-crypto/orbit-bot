@@ -2,30 +2,30 @@ const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 module.exports = {
-    name: 'balance',
-    aliases: ['bal', 'saldo', 'carteira'],
+    name: 'daily',
+    aliases: ['diario', 'bonus'],
     
     async executePrefix(message, args, client) {
-        let user = message.author;
+        const lastDaily = db.get(`daily_${message.author.id}_${message.guild.id}`);
+        const now = Date.now();
+        const cooldown = 86400000; // 24 horas
         
-        if (args[0]) {
-            const mention = message.mentions.users.first();
-            if (mention) user = mention;
+        if (lastDaily && now - lastDaily < cooldown) {
+            const remaining = new Date(cooldown - (now - lastDaily));
+            const hours = remaining.getUTCHours();
+            const minutes = remaining.getUTCMinutes();
+            return message.reply(`⏰ Você já resgatou seu daily! Próximo em ${hours}h ${minutes}m.`);
         }
         
-        let carteira = db.get(`carteira_${user.id}_${message.guild.id}`) || 0;
-        let banco = db.get(`banco_${user.id}_${message.guild.id}`) || 0;
+        const reward = 500;
+        db.add(`carteira_${message.author.id}_${message.guild.id}`, reward);
+        db.set(`daily_${message.author.id}_${message.guild.id}`, now);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
-            .setTitle(`💰 Saldo de ${user.username}`)
-            .setThumbnail(user.displayAvatarURL())
-            .addFields(
-                { name: '💵 Carteira', value: `${carteira} moedas`, inline: true },
-                { name: '🏦 Banco', value: `${banco} moedas`, inline: true },
-                { name: '📊 Total', value: `${carteira + banco} moedas`, inline: true }
-            )
-            .setTimestamp();
+            .setColor(0xFFD700)
+            .setTitle('🎉 Bônus Diário!')
+            .setDescription(`Você recebeu **${reward} moedas**!`)
+            .setFooter({ text: 'Volte amanhã para mais!' });
         
         await message.reply({ embeds: [embed] });
     }
