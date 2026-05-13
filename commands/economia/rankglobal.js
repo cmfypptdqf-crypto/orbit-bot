@@ -13,7 +13,7 @@ function getDB() {
 
 module.exports = {
     name: 'rankglobal',
-    aliases: ['globalrank', 'topglobal', 'liderancaglobal'],
+    aliases: ['globalrank', 'topglobal', 'liderancaglobal', 'rg'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
@@ -36,7 +36,7 @@ module.exports = {
                         total: 0,
                         carteira: 0,
                         banco: 0,
-                        servidores: []
+                        servidores: new Set()
                     });
                 }
                 
@@ -44,7 +44,7 @@ module.exports = {
                 userData.total += total;
                 userData.carteira += carteira;
                 userData.banco += banco;
-                userData.servidores.push(guildId);
+                userData.servidores.add(guildId);
             }
         }
         
@@ -52,14 +52,12 @@ module.exports = {
         const ranking = [];
         for (const [userId, data] of usuariosGlobal) {
             let user = null;
-            for (const guildId of data.servidores) {
-                const guild = client.guilds.cache.get(guildId);
-                if (guild) {
-                    try {
-                        user = await guild.members.fetch(userId).then(m => m.user).catch(() => null);
-                        if (user) break;
-                    } catch (e) {}
-                }
+            // Tentar buscar o usuário em todos os servidores que o bot está
+            for (const guild of client.guilds.cache.values()) {
+                try {
+                    user = await guild.members.fetch(userId).then(m => m.user).catch(() => null);
+                    if (user) break;
+                } catch (e) {}
             }
             
             if (user) {
@@ -68,7 +66,7 @@ module.exports = {
                     total: data.total,
                     carteira: data.carteira,
                     banco: data.banco,
-                    servidores: data.servidores.length
+                    servidores: data.servidores.size
                 });
             }
         }
@@ -91,7 +89,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
                 .setTitle('🌍 Ranking Global de Riqueza')
-                .setDescription(`Os usuários mais ricos em TODOS os servidores!\n📊 Total: **${ranking.length}** usuários | 🌍 **${new Set(ranking.flatMap(r => r.servidores)).size}** servidores`)
+                .setDescription(`Os usuários mais ricos em TODOS os servidores!\n📊 Total: **${ranking.length}** usuários`)
                 .setFooter({ text: `Página ${pagina}/${totalPaginas}` })
                 .setTimestamp();
             
@@ -104,7 +102,7 @@ module.exports = {
                 
                 embed.addFields({
                     name: `${medalha}#${pos} - ${topPagina[i].user.username}`,
-                    value: `💰 ${topPagina[i].total.toLocaleString()} moedas (💵 ${topPagina[i].carteira.toLocaleString()} | 🏦 ${topPagina[i].banco.toLocaleString()})\n📌 ${topPagina[i].servidores} servidor(es)`,
+                    value: `💰 ${topPagina[i].total.toLocaleString()} moedas\n💵 Carteira: ${topPagina[i].carteira.toLocaleString()} | 🏦 Banco: ${topPagina[i].banco.toLocaleString()}\n📌 ${topPagina[i].servidores} servidor(es)`,
                     inline: false
                 });
             }
@@ -152,7 +150,6 @@ module.exports = {
         
         const msg = await message.reply({ embeds: [embed], components: [row] });
         
-        // Coletor de interações
         const filter = (interaction) => {
             return interaction.user.id === message.author.id && 
                    (interaction.customId === 'prev_global' || interaction.customId === 'next_global');
@@ -193,23 +190,6 @@ module.exports = {
                 );
             
             await interaction.update({ embeds: [newEmbed], components: [newRow] });
-        });
-        
-        collector.on('end', async () => {
-            const disabledRow = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId('prev_global')
-                        .setLabel('◀ Anterior')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true),
-                    new ButtonBuilder()
-                        .setCustomId('next_global')
-                        .setLabel('Próximo ▶')
-                        .setStyle(ButtonStyle.Primary)
-                        .setDisabled(true)
-                );
-            await msg.edit({ components: [disabledRow] }).catch(() => {});
         });
     }
 };
