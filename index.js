@@ -94,7 +94,7 @@ async function registerSlashCommands() {
 }
 
 // ========== QUANDO O BOT FICA ONLINE ==========
-client.once('ready', async () => {
+client.once('clientReady', async () => {
     console.log(`✅ Orbit™ online como ${client.user.tag}`);
     console.log(`📊 Está em ${client.guilds.cache.size} servidores`);
     
