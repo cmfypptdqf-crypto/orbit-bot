@@ -16,7 +16,7 @@ function saveDB(data) {
 }
 
 // 🔧 CONFIGURE AQUI O ID DO CARGO PERMITIDO (mesmo do addmoedas)
-const CARGO_PERMITIDO_ID = 'ID_DO_CARGO_AQUI';
+const CARGO_PERMITIDO_ID = '1504261562498814042';
 
 module.exports = {
     name: 'removermoedas',
