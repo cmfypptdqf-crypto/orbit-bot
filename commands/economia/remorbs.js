@@ -19,15 +19,15 @@ function saveDB(data) {
 const CARGO_PERMITIDO_ID = '1504261562498814042';
 
 module.exports = {
-    name: 'removermoedas',
-    aliases: ['removemoney', 'retirarmoedas'],
+    name: 'removerorbs',
+    aliases: ['remorbs', 'retirarorbs'],
     
     async executePrefix(message, args, client) {
         // Verificar se o usuário tem o cargo específico
         const member = message.member;
         
         if (!member.roles.cache.has(CARGO_PERMITIDO_ID)) {
-            return message.reply(`❌ Você não tem permissão para usar este comando!\n📌 Apenas membros com o cargo <@&${CARGO_PERMITIDO_ID}> podem remover moedas.`);
+            return message.reply(`❌ Você não tem permissão para usar este comando!\n📌 Apenas membros com o cargo <@&${CARGO_PERMITIDO_ID}> podem remover orbs.`);
         }
         
         const user = message.mentions.users.first();
