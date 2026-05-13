@@ -19,8 +19,8 @@ function saveDB(data) {
 const CARGO_PERMITIDO_ID = '1504261562498814042'; // ← COLOQUE O ID DO CARGO AQUI
 
 module.exports = {
-    name: 'addmoedas',
-    aliases: ['addmoney', 'adicionar'],
+    name: 'addorbs',
+    aliases: ['adicionar'],
     
     async executePrefix(message, args, client) {
         // Verificar se o usuário tem o cargo específico
