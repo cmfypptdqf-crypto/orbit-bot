@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, version } = require('discord.js');
+const os = require('os');
 
 module.exports = {
     name: 'ajuda',
