@@ -34,4 +34,13 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
             .setTitle(`🏆 Passe de Temporada - ${temporadaAtual.nome}`)
-            .setDescription(`📅 ${temporadaAt
+            .setDescription(`📅 ${temporadaAtual.inicio} até ${temporadaAtual.fim}`)
+            .addFields(
+                { name: '🎯 Níveis e Recompensas', value: temporadaAtual.recompensas.map(r => `Nível ${r.nivel}: ${r.recompensa}`).join('\n'), inline: false },
+                { name: '💡 Como ganhar XP?', value: 'Complete missões, ataques e eventos para subir de nível!', inline: false }
+            )
+            .setFooter({ text: '🎯 Suba de nível na Temporada e ganhe recompensas exclusivas!' });
+        
+        await message.reply({ embeds: [embed] });
+    }
+};
