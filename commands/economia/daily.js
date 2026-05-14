@@ -1,8 +1,9 @@
-// commands/economia/diario.js
+// commands/economia/daily.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../utilidades/cooldownsManager.js');
+const { checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent } = require('../../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -18,16 +19,18 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'diario',
-    aliases: ['daily', 'diário', 'bonus'],
+    name: 'daily',
+    aliases: ['diario', 'diário', 'bonus'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
-        // VERIFICAR COOLDOWN
-        const cooldownCheck = cooldownsManager.check(userId, 'daily');
+        const fraseInicial = getRandomFrase('inicio');
+        
+        const cooldownCheck = checkCooldown(userId, 'daily');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para pegar seu próximo bônus diário!`);
+            const fraseCooldown = getRandomFrase('cooldown');
+            return message.reply(`${fraseCooldown}\n⏰ Aguarde mais **${cooldownCheck.formatted}** para o próximo bônus diário!`);
         }
         
         const db = getDB();
@@ -36,23 +39,49 @@ module.exports = {
             db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
         }
         
-        const bonus = 200;
-        const ganho = bonus;
+        const bonusBase = 200;
+        let bonusFinal = bonusBase;
         
-        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
+        // Verificar evento aleatório
+        const evento = checkRandomEvent();
+        let eventoResultado = null;
+        
+        if (evento && evento.efeito === 'positivo') {
+            const bonusEvento = Math.floor(Math.random() * 150) + 50;
+            bonusFinal += bonusEvento;
+            eventoResultado = { mensagem: evento.frase, efeito: `✨ +${bonusEvento} Orbs extra!` };
+        } else if (evento && evento.efeito === 'negativo') {
+            const perdaEvento = Math.floor(Math.random() * 100) + 20;
+            bonusFinal = Math.max(50, bonusFinal - perdaEvento);
+            eventoResultado = { mensagem: evento.frase, efeito: `💸 -${perdaEvento} Orbs (anomalia)` };
+        } else if (evento) {
+            eventoResultado = { mensagem: evento.frase, efeito: '🌌 Neutro' };
+        }
+        
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + bonusFinal;
         saveDB(db);
         
-        // REGISTRAR COOLDOWN
-        cooldownsManager.set(userId, 'daily');
+        setCooldown(userId, 'daily');
+        
+        const fraseSucesso = getRandomFrase('sucesso');
         
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('📆 Bônus Diário!')
-            .setDescription(`Você recebeu **${ganho} Orbs**!`)
+            .setTitle(`📆 ${fraseInicial}`)
+            .setDescription(`${fraseSucesso}\n📡 Você recebeu seu bônus diário!`)
             .addFields(
+                { name: '🎁 Bônus Recebido', value: `**+${bonusFinal.toLocaleString()} Orbs**`, inline: true },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: 'Volte amanhã para mais! Use bt!cooldowns para ver os tempos' });
+            .setFooter({ text: '🌌 Orbit • Volte amanhã para mais!' })
+            .setTimestamp();
+        
+        if (eventoResultado) {
+            embed.addFields(
+                { name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false },
+                { name: '✨ Efeito', value: eventoResultado.efeito, inline: true }
+            );
+        }
         
         await message.reply({ embeds: [embed] });
     }
