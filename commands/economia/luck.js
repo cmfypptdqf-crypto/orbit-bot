@@ -1,13 +1,14 @@
+// commands/economia/sortudo.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const cooldownsManager = require('../../utils/cooldownsManager.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
-const cooldowns = new Map();
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {}, vip_list: {} }));
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
     }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
@@ -22,18 +23,11 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
-        const cooldownKey = `luck_${userId}`;
-        const lastLuck = cooldowns.get(cooldownKey);
         
-        if (lastLuck && Date.now() - lastLuck < 3600000) {
-            const remaining = Math.ceil((3600000 - (Date.now() - lastLuck)) / 60000);
-            return message.reply(`⏰ Você já usou sua sorte hoje! Volte em **${remaining} minutos**.`);
-        }
-        
-        const db = getDB();
-        
-        if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+        // VERIFICAR COOLDOWN
+        const cooldownCheck = cooldownsManager.check(userId, 'sortudo');
+        if (!cooldownCheck.available) {
+            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para testar sua sorte novamente!`);
         }
         
         const eventos = [
@@ -45,29 +39,26 @@ module.exports = {
             { nome: '💀 Má Sorte', ganho: [-500, -50], cor: 0xFF0000, chance: 0.05 }
         ];
         
-        // Verificar item Amuleto da Sorte
-        const inventario = db.usuarios[userId].inventario || {};
-        const temAmuleto = inventario['11'] > 0;
+        // Seleção normal ponderada
+        const roll = Math.random();
+        let acumulado = 0;
+        let eventoEscolhido = eventos[0];
         
-        let eventoEscolhido;
-        if (temAmuleto) {
-            // Dobra chance de eventos positivos
-            const positivos = eventos.filter(e => e.ganho[0] > 0);
-            eventoEscolhido = positivos[Math.floor(Math.random() * positivos.length)];
-        } else {
-            // Seleção normal ponderada
-            const roll = Math.random();
-            let acumulado = 0;
-            for (const evento of eventos) {
-                acumulado += evento.chance;
-                if (roll <= acumulado) {
-                    eventoEscolhido = evento;
-                    break;
-                }
+        for (const evento of eventos) {
+            acumulado += evento.chance;
+            if (roll <= acumulado) {
+                eventoEscolhido = evento;
+                break;
             }
         }
         
         const ganho = Math.floor(Math.random() * (eventoEscolhido.ganho[1] - eventoEscolhido.ganho[0] + 1) + eventoEscolhido.ganho[0]);
+        
+        const db = getDB();
+        
+        if (!db.usuarios[userId]) {
+            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+        }
         
         let embed;
         
@@ -94,16 +85,12 @@ module.exports = {
                 );
         }
         
-        if (temAmuleto) {
-            embed.addFields({ name: '🍀 Amuleto da Sorte', value: 'Ativo! Eventos positivos garantidos!', inline: false });
-            // Consumir o amuleto? ou mantém? Decida aqui
-            // inventario['11']--;
-        }
-        
         saveDB(db);
-        cooldowns.set(cooldownKey, Date.now());
         
-        embed.setFooter({ text: 'Volte amanhã para testar sua sorte novamente!' });
+        // REGISTRAR COOLDOWN
+        cooldownsManager.set(userId, 'sortudo');
+        
+        embed.setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
         
         await message.reply({ embeds: [embed] });
     }
