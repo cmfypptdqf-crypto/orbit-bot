@@ -1,13 +1,14 @@
+// commands/economia/search.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const cooldownsManager = require('../../utils/cooldownsManager.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
-const cooldowns = new Map();
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {}, vip_list: {} }));
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
     }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
@@ -22,43 +23,13 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
-        const cooldownKey = `search_${userId}`;
-        const lastSearch = cooldowns.get(cooldownKey);
         
-        if (lastSearch && Date.now() - lastSearch < 600000) {
-            const remaining = Math.ceil((600000 - (Date.now() - lastSearch)) / 60000);
-            return message.reply(`⏰ Seu scanner ainda está recarregando! Volte em **${remaining} minutos**.`);
+        // VERIFICAR COOLDOWN
+        const cooldownCheck = cooldownsManager.check(userId, 'search');
+        if (!cooldownCheck.available) {
+            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para explorar novamente!`);
         }
         
-        const db = getDB();
-        
-        if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {}, total_exploracoes: 0 };
-        }
-        
-        // Multiplicador VIP
-        let multiplicador = 1.0;
-        let vipTier = null;
-        
-        if (db.vip_list[userId] && db.vip_list[userId].expira > Date.now()) {
-            multiplicador = db.vip_list[userId].multiplicador;
-            vipTier = db.vip_list[userId].tier;
-        }
-        
-        // Itens de boost
-        const inventario = db.usuarios[userId].inventario || {};
-        let boostItem = null;
-        
-        if (inventario['3'] > 0) { // Anel Cósmico
-            multiplicador *= 1.15;
-            boostItem = '💍 Anel Cósmico';
-        }
-        if (inventario['1'] > 0) { // Telescópio
-            multiplicador *= 1.05;
-            boostItem = boostItem ? `${boostItem} + 🔭 Telescópio` : '🔭 Telescópio';
-        }
-        
-        // Local sorteado
         const locais = [
             { nome: '🗑️ Lixo Espacial', ganho: [100, 400], cor: 0x808080 },
             { nome: '🚀 Nave Abandonada', ganho: [500, 1800], cor: 0x9B59B6 },
@@ -72,34 +43,29 @@ module.exports = {
         ];
         
         const local = locais[Math.floor(Math.random() * locais.length)];
-        const ganhoBase = Math.floor(Math.random() * (local.ganho[1] - local.ganho[0] + 1) + local.ganho[0]);
-        const ganhoFinal = Math.floor(ganhoBase * multiplicador);
+        const ganho = Math.floor(Math.random() * (local.ganho[1] - local.ganho[0] + 1) + local.ganho[0]);
         
-        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganhoFinal;
-        db.usuarios[userId].total_exploracoes = (db.usuarios[userId].total_exploracoes || 0) + 1;
+        const db = getDB();
+        
+        if (!db.usuarios[userId]) {
+            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+        }
+        
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
         saveDB(db);
         
-        cooldowns.set(cooldownKey, Date.now());
+        // REGISTRAR COOLDOWN
+        cooldownsManager.set(userId, 'search');
         
         const embed = new EmbedBuilder()
             .setColor(local.cor)
             .setTitle('🔍 Exploração Espacial')
             .setDescription(`📡 Sondando: **${local.nome}**`)
             .addFields(
-                { name: '💰 Ganho Base', value: `${ganhoBase.toLocaleString()} Orbs`, inline: true },
-                { name: '✨ Multiplicadores', value: `${multiplicador.toFixed(2)}x`, inline: true },
-                { name: '🎉 Total Encontrado', value: `**+${ganhoFinal.toLocaleString()} Orbs**`, inline: false },
+                { name: '💎 Você encontrou', value: `**+${ganho.toLocaleString()} Orbs**`, inline: true },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-            );
-        
-        if (vipTier) {
-            embed.addFields({ name: '⭐ VIP Ativo', value: `${vipTier.toUpperCase()} (${multiplicador}x)`, inline: true });
-        }
-        if (boostItem) {
-            embed.addFields({ name: '🎁 Item Ativo', value: boostItem, inline: true });
-        }
-        
-        embed.setFooter({ text: 'Próxima exploração em 10 minutos' });
+            )
+            .setFooter({ text: 'Use !cooldowns para ver todos os tempos' });
         
         await message.reply({ embeds: [embed] });
     }
