@@ -43,7 +43,7 @@ module.exports = {
         }
         
         if (amount <= 0) return message.reply('❌ Digite um valor positivo!');
-        if (amount > banco) return message.reply(`❌ Você só tem ${banco.toLocaleString()} Orbs no banco!`);
+        if (amount > banco) return message.reply(`❌ Você só tem ${banco.toLocaleString()} Orbs no Orbital Bank!`);
         
         db.usuarios[userId].banco = banco - amount;
         db.usuarios[userId].carteira = carteira + amount;
@@ -52,11 +52,13 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0xFFA500)
             .setTitle(`💸 ${getRandomFrase('sucesso')}`)
-            .setDescription(`📡 Você sacou **${amount.toLocaleString()} Orbs** da Estação!`)
+            .setDescription(`📡 Você sacou **${amount.toLocaleString()} Orbs** do **Orbital Bank**!`)
             .addFields(
                 { name: '💵 Carteira', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
-                { name: '🏦 Banco', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
-            );
+                { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
+            )
+            .setFooter({ text: '✨ Orbital Bank • Fundos garantidos pela Federação' });
+        
         await message.reply({ embeds: [embed] });
     }
 };
