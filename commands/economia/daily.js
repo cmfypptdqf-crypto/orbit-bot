@@ -38,4 +38,34 @@ module.exports = {
         
         const bonusBase = 200;
         const bonusInfo = calcularBonusTotal(userId, 'carteira');
-        const bonus
+        const bonusFinal = Math.floor(bonusBase * bonusInfo.bonus);
+        const xpGanho = Math.floor(bonusFinal / 10);
+        
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + bonusFinal;
+        db.usuarios[userId].xpTotal = (db.usuarios[userId].xpTotal || 0) + xpGanho;
+        
+        const evento = checkRandomEvent();
+        let eventoResultado = null;
+        if (evento) eventoResultado = await processEvent(evento, userId, db, client);
+        
+        saveDB(db);
+        cooldownsManager.set(userId, 'daily');
+        
+        const embed = new EmbedBuilder()
+            .setColor(0xFFD700)
+            .setTitle(`📆 ${getRandomFrase('sucesso')}`)
+            .setDescription(`📡 Bônus diário recebido!`)
+            .addFields(
+                { name: '💰 Bônus Base', value: `${bonusBase.toLocaleString()} Orbs`, inline: true },
+                { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
+                { name: '🎁 Total', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
+                { name: '⭐ XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true }
+            );
+        
+        if (eventoResultado) {
+            embed.addFields({ name: '🎲 EVENTO!', value: eventoResultado.mensagem, inline: false });
+        }
+        
+        await message.reply({ embeds: [embed] });
+    }
+};
