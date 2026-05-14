@@ -16,11 +16,7 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-const nomesItens = {
-    '1': '🔭 Telescópio', '2': '🚀 Nave Explorer', '3': '💍 Anel Cósmico',
-    '4': '🛡️ Escudo', '5': '👻 Capa', '6': '🚨 Alarme',
-    '11': '🍀 Amuleto', '12': '📈 Ação', '13': '🎰 Caça-Níquel'
-};
+const nomesItens = { '1': '🔭 Telescópio', '2': '🚀 Nave', '3': '💍 Anel', '4': '🛡️ Escudo', '5': '👻 Capa' };
 
 module.exports = {
     name: 'trade',
@@ -34,33 +30,18 @@ module.exports = {
         if (subcmd === 'oferecer') {
             const user = message.mentions.users.first();
             const itemId = args[2];
-            const quantidade = parseInt(args[3]) || 1;
-            
-            if (!user) return message.reply('❌ Use: `bt!trade oferecer @usuario <item_id> [qtd]`');
-            if (user.id === message.author.id) return message.reply('❌ Não pode trocar consigo mesmo!');
-            if (!itemId) return message.reply('❌ Especifique o item!');
+            const qtd = parseInt(args[3]) || 1;
+            if (!user || !itemId) return message.reply('❌ Use: `bt!trade oferecer @user <id> [qtd]`');
             
             const userId = message.author.id;
-            const inventario = db.usuarios[userId]?.inventario || {};
-            if ((inventario[itemId] || 0) < quantidade) {
-                return message.reply(`❌ Você não tem ${quantidade}x do item ${itemId}!`);
-            }
+            if ((db.usuarios[userId]?.inventario?.[itemId] || 0) < qtd) return message.reply('❌ Você não tem este item!');
             
             const tradeId = `${userId}_${user.id}`;
-            if (!db.trades[tradeId]) {
-                db.trades[tradeId] = { user1: userId, user2: user.id, items1: [], items2: [], status: 'pending' };
-            }
-            db.trades[tradeId].items1.push({ id: itemId, qtd: quantidade });
+            if (!db.trades[tradeId]) db.trades[tradeId] = { user1: userId, user2: user.id, items1: [], items2: [] };
+            db.trades[tradeId].items1.push({ id: itemId, qtd });
             saveDB(db);
             
-            const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
-                .setTitle('🔄 Proposta de Troca')
-                .setDescription(`${message.author} propôs troca com ${user}`)
-                .addFields({ name: '📦 Oferecido', value: `${nomesItens[itemId] || itemId} x${quantidade}`, inline: true })
-                .setFooter({ text: `${user.username}, use bt!trade aceitar ${tradeId}` });
-            
-            await message.reply({ embeds: [embed] });
+            await message.reply(`🔄 Proposta de troca criada! Use \`bt!trade aceitar ${tradeId}\` para aceitar.`);
         }
         
         else if (subcmd === 'aceitar') {
@@ -73,41 +54,30 @@ module.exports = {
             const otherId = trade.user1;
             
             for (const item of trade.items1) {
-                if ((db.usuarios[otherId]?.inventario?.[item.id] || 0) < item.qtd) {
-                    return message.reply(`❌ O outro usuário não tem mais ${item.qtd}x do item!`);
-                }
+                if ((db.usuarios[otherId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('❌ Ofertas expiraram!');
             }
             for (const item of trade.items2) {
-                if ((db.usuarios[userId]?.inventario?.[item.id] || 0) < item.qtd) {
-                    return message.reply(`❌ Você não tem mais ${item.qtd}x do item!`);
-                }
+                if ((db.usuarios[userId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('❌ Você não tem os itens oferecidos!');
             }
             
             for (const item of trade.items1) {
                 db.usuarios[otherId].inventario[item.id] -= item.qtd;
-                if (db.usuarios[otherId].inventario[item.id] <= 0) delete db.usuarios[otherId].inventario[item.id];
                 if (!db.usuarios[userId].inventario[item.id]) db.usuarios[userId].inventario[item.id] = 0;
                 db.usuarios[userId].inventario[item.id] += item.qtd;
             }
             for (const item of trade.items2) {
                 db.usuarios[userId].inventario[item.id] -= item.qtd;
-                if (db.usuarios[userId].inventario[item.id] <= 0) delete db.usuarios[userId].inventario[item.id];
                 if (!db.usuarios[otherId].inventario[item.id]) db.usuarios[otherId].inventario[item.id] = 0;
                 db.usuarios[otherId].inventario[item.id] += item.qtd;
             }
             
-            trade.status = 'completed';
+            delete db.trades[tradeId];
             saveDB(db);
-            
             await message.reply(`✅ Troca concluída com sucesso!`);
         }
         
         else {
-            const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
-                .setTitle('🔄 Sistema de Troca')
-                .setDescription('Comandos: `oferecer @user <item_id> [qtd]`, `aceitar <id>`');
-            await message.reply({ embeds: [embed] });
+            await message.reply('🔄 **Sistema de Troca**\n`bt!trade oferecer @user <id> [qtd]`\n`bt!trade aceitar <id>`');
         }
     }
 };
