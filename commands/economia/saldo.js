@@ -11,6 +11,10 @@ function getDB() {
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
+function saveDB(data) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
 module.exports = {
     name: 'nucleo',
     aliases: ['carteira', 'saldo', 'bal', 'nuclear'],
@@ -31,11 +35,12 @@ module.exports = {
         
         const nucleo = db.usuarios[userId].carteira || 0;
         const estacao = db.usuarios[userId].banco || 0;
+        const user = await client.users.fetch(userId);
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle(`💵 Núcleo de ${message.author.username}`)
-            .setThumbnail(message.author.displayAvatarURL())
+            .setTitle(`💵 Núcleo de ${user.username}`)
+            .setThumbnail(user.displayAvatarURL())
             .addFields(
                 { name: '💵 Núcleo', value: `${nucleo.toLocaleString()} Orbs`, inline: true },
                 { name: '🏦 Estação', value: `${estacao.toLocaleString()} Orbs`, inline: true },
