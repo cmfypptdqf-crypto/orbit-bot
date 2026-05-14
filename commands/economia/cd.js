@@ -1,10 +1,9 @@
-// commands/economia/cooldowns.js
 const { EmbedBuilder } = require('discord.js');
 const cooldownsManager = require('../../utilidades/cooldownsManager.js');
 
 module.exports = {
-    name: 'cooldowns',
-    aliases: ['cd', 'tempo', 'wait', 'espera', 'restante', 'recarga'],
+    name: 'cd',
+    aliases: ['cooldowns', 'tempo', 'wait', 'espera', 'restante', 'recarga'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
@@ -69,7 +68,7 @@ module.exports = {
         if (totalIndisponiveis > 0) {
             embed.setFooter({ text: `${totalIndisponiveis} comando(s) em recarga` });
         } else {
-            embed.setFooter({ text: '✨ Todos os comandos estão disponíveis! Use sua sorte!' });
+            embed.setFooter({ text: '✨ Todos os comandos estão disponíveis!' });
         }
         
         await message.reply({ embeds: [embed] });
