@@ -1,12 +1,29 @@
 // commands/economia/craft.js
+const { EmbedBuilder } = require('discord.js'); // ← ADICIONAR
+const fs = require('fs');
+const path = require('path');
+
+const dbPath = path.join(__dirname, '..', '..', 'database.json');
+
+function getDB() {
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
+    }
+    return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+}
+
+function saveDB(data) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
 const recipes = {
-    '🚀 Nave Hiperespacial': {
-        ingredientes: { '1': 2, '2': 1 }, // 2 telescópios + 1 nave
+    'Nave Hiperespacial': {  // ← REMOVI O EMOJI do nome da receita
+        ingredientes: { '1': 2, '2': 1 },
         resultado: { id: '14', nome: '🚀 Nave Hiperespacial', bonus: 2.0 },
         custo: 5000
     },
-    '💎 Cristal Cósmico': {
-        ingredientes: { '3': 3, '11': 1 }, // 3 anéis + 1 amuleto
+    'Cristal Cósmico': {  // ← REMOVI O EMOJI do nome da receita
+        ingredientes: { '3': 3, '11': 1 },
         resultado: { id: '15', nome: '💎 Cristal Cósmico', bonus: 3.0 },
         custo: 10000
     }
@@ -23,16 +40,25 @@ module.exports = {
         if (subcmd === 'receitas') {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle('🔧 Receitas de Crafting');
+                .setTitle('🔧 Receitas de Crafting')
+                .setDescription('Use `!craft fazer <nome>` para fabricar um item');
             
             for (const [nome, recipe] of Object.entries(recipes)) {
                 const ingredientes = Object.entries(recipe.ingredientes)
-                    .map(([id, qtd]) => `Item ${id} x${qtd}`)
+                    .map(([id, qtd]) => {
+                        const nomesItens = {
+                            '1': '🔭 Telescópio',
+                            '2': '🚀 Nave Explorer',
+                            '3': '💍 Anel Cósmico',
+                            '11': '🍀 Amuleto da Sorte'
+                        };
+                        return `${nomesItens[id] || `Item ${id}`} x${qtd}`;
+                    })
                     .join(', ');
                 
                 embed.addFields({
-                    name: nome,
-                    value: `📦 Ingredientes: ${ingredientes}\n💰 Custo: ${recipe.custo} Orbs\n✨ Resultado: ${recipe.resultado.nome}`,
+                    name: `✨ ${recipe.resultado.nome}`,
+                    value: `📦 Ingredientes: ${ingredientes}\n💰 Custo: ${recipe.custo.toLocaleString()} Orbs`,
                     inline: false
                 });
             }
@@ -42,23 +68,42 @@ module.exports = {
         
         if (subcmd === 'fazer') {
             const nomeReceita = args.slice(1).join(' ');
-            const recipe = recipes[nomeReceita];
             
-            if (!recipe) return message.reply('❌ Receita não encontrada! Use `!craft receitas`');
+            // Buscar receita (case insensitive)
+            const recipeKey = Object.keys(recipes).find(key => 
+                key.toLowerCase() === nomeReceita.toLowerCase()
+            );
+            
+            const recipe = recipes[recipeKey];
+            
+            if (!recipe) {
+                return message.reply('❌ Receita não encontrada! Use `!craft receitas` para ver as receitas disponíveis.');
+            }
             
             const db = getDB();
             const userId = message.author.id;
-            const inventario = db.usuarios[userId]?.inventario || {};
+            
+            if (!db.usuarios[userId]) {
+                db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+            }
+            
+            const inventario = db.usuarios[userId].inventario || {};
             
             // Verificar ingredientes
             for (const [id, qtd] of Object.entries(recipe.ingredientes)) {
                 if ((inventario[id] || 0) < qtd) {
-                    return message.reply(`❌ Faltam ${qtd}x do item ${id}`);
+                    const nomesItens = {
+                        '1': '🔭 Telescópio',
+                        '2': '🚀 Nave Explorer',
+                        '3': '💍 Anel Cósmico',
+                        '11': '🍀 Amuleto da Sorte'
+                    };
+                    return message.reply(`❌ Faltam ${qtd}x do item ${nomesItens[id] || `ID ${id}`}`);
                 }
             }
             
-            if ((db.usuarios[userId]?.carteira || 0) < recipe.custo) {
-                return message.reply(`❌ Faltam ${recipe.custo} Orbs para craftar!`);
+            if ((db.usuarios[userId].carteira || 0) < recipe.custo) {
+                return message.reply(`❌ Faltam ${recipe.custo.toLocaleString()} Orbs para craftar!`);
             }
             
             // Consumir ingredientes
@@ -73,9 +118,33 @@ module.exports = {
             if (!inventario[recipe.resultado.id]) inventario[recipe.resultado.id] = 0;
             inventario[recipe.resultado.id]++;
             
+            db.usuarios[userId].inventario = inventario;
             saveDB(db);
             
-            await message.reply(`✅ Você craftou **${recipe.resultado.nome}** com sucesso!`);
+            // Mensagem de sucesso
+            const embed = new EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle('✅ Craft realizado com sucesso!')
+                .setDescription(`Você craftou **${recipe.resultado.nome}**!`)
+                .addFields(
+                    { name: '✨ Bônus', value: `${recipe.resultado.bonus}x em atividades`, inline: true },
+                    { name: '💰 Custo', value: `${recipe.custo.toLocaleString()} Orbs`, inline: true }
+                );
+            
+            await message.reply({ embeds: [embed] });
+        }
+        
+        if (!subcmd) {
+            const embed = new EmbedBuilder()
+                .setColor(0xFFD700)
+                .setTitle('🔧 Sistema de Crafting')
+                .setDescription('Comandos disponíveis:')
+                .addFields(
+                    { name: '📋 `!craft receitas`', value: 'Mostra todas as receitas disponíveis', inline: false },
+                    { name: '⚙️ `!craft fazer <nome>`', value: 'Fabricar um item (ex: `!craft fazer Nave Hiperespacial`)', inline: false }
+                );
+            
+            await message.reply({ embeds: [embed] });
         }
     }
 };
