@@ -3,6 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -30,10 +31,14 @@ module.exports = {
         const userId = message.author.id;
         const targetId = user.id;
         
-        // ========== VERIFICAR COOLDOWN ==========
+        // Frase inicial do Orbit
+        const fraseInicial = getComandoFrase('pirataria') || getRandomFrase('inicio');
+        
+        // Verificar cooldown
         const cooldownCheck = checkCooldown(userId, 'pirataria');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ **Aguarde mais ${cooldownCheck.formatted}** para outro ataque pirata!`);
+            const fraseCooldown = getRandomFrase('cooldown');
+            return message.reply(`${fraseCooldown}\n⏰ Aguarde mais **${cooldownCheck.formatted}** para outro ataque!`);
         }
         
         const db = getDB();
@@ -58,8 +63,12 @@ module.exports = {
         
         const sucesso = Math.random() < chanceSucesso;
         
-        // ========== REGISTRAR COOLDOWN ==========
+        // Registrar cooldown
         setCooldown(userId, 'pirataria');
+        
+        // Verificar evento aleatório
+        const evento = checkRandomEvent();
+        let eventoResultado = null;
         
         if (sucesso) {
             const percentual = Math.random() * (0.3 - 0.1) + 0.1;
@@ -69,18 +78,33 @@ module.exports = {
             db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + valorRoubado;
             db.usuarios[targetId].carteira = (db.usuarios[targetId].carteira || 0) - valorRoubado;
             db.usuarios[userId].total_ataques = (db.usuarios[userId].total_ataques || 0) + 1;
+            
+            if (evento) {
+                eventoResultado = await processEvent(evento, userId, db, client);
+            }
+            
             saveDB(db);
+            
+            const fraseSucesso = getRandomFrase('sucesso');
             
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
-                .setTitle('☄️ Ataque Pirata Bem Sucedido!')
-                .setDescription(`Você saqueou **${valorRoubado.toLocaleString()} Orbs** da nave de ${user.username}`)
+                .setTitle(`☄️ ${fraseInicial}`)
+                .setDescription(`${fraseSucesso}\n📡 Você saqueou **${valorRoubado.toLocaleString()} Orbs** da nave de ${user.username}`)
                 .addFields(
-                    { name: '🎯 Chance com bônus', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
+                    { name: '🎯 Chance', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
                     { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
                     { name: '✨ Bônus aplicado', value: bonusAtaque.texto || 'Nenhum', inline: false }
                 )
-                .setFooter({ text: '⏰ Próximo ataque disponível em 30 minutos!' });
+                .setFooter({ text: '🌌 Orbit • Próximo ataque em 30 minutos' })
+                .setTimestamp();
+            
+            if (eventoResultado) {
+                embed.addFields(
+                    { name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false },
+                    { name: '✨ Efeito', value: eventoResultado.efeito || 'Neutro', inline: true }
+                );
+            }
             
             await message.reply({ embeds: [embed] });
         } else {
@@ -88,17 +112,32 @@ module.exports = {
             const perdaReal = Math.min(perda, db.usuarios[userId].carteira || 0);
             
             db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) - perdaReal;
+            
+            if (evento) {
+                eventoResultado = await processEvent(evento, userId, db, client);
+            }
+            
             saveDB(db);
+            
+            const fraseErro = getRandomFrase('erro');
             
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('🚨 Ataque Falhou!')
+                .setTitle(`🚨 ${fraseErro}`)
                 .setDescription(`Você foi capturado pela Patrulha Galáctica ao tentar atacar ${user.username}`)
                 .addFields(
                     { name: '💰 Multa paga', value: `${perdaReal.toLocaleString()} Orbs`, inline: true },
                     { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
-                .setFooter({ text: '⏰ Próximo ataque disponível em 30 minutos!' });
+                .setFooter({ text: '🌌 Orbit • Próximo ataque em 30 minutos' })
+                .setTimestamp();
+            
+            if (eventoResultado) {
+                embed.addFields(
+                    { name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false },
+                    { name: '✨ Efeito', value: eventoResultado.efeito || 'Neutro', inline: true }
+                );
+            }
             
             await message.reply({ embeds: [embed] });
         }
