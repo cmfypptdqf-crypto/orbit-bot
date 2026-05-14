@@ -85,7 +85,7 @@ module.exports = {
         const subcmd = args[0]?.toLowerCase();
         const guildId = message.guild.id;
         const guildName = message.guild.name;
-        const db = getDB();
+        let db = getDB();
         
         if (!db.galaxias) db.galaxias = {};
         if (!db.galaxias[guildId]) {
@@ -102,7 +102,7 @@ module.exports = {
             saveDB(db);
         }
         
-        const guildData = db.galaxias[guildId];
+        let guildData = db.galaxias[guildId];
         
         // Comando: listar
         if (subcmd === 'listar') {
@@ -153,7 +153,7 @@ module.exports = {
                     { name: '💰 Recursos', value: `${guildData.recursos.toLocaleString()} Orbs`, inline: true },
                     { name: '✨ Bônus Ativos', value: `💰 +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs\n🚀 +${Math.round((galaxia.bonus.missoes - 1) * 100)}% XP Missões\n⚔️ +${Math.round((galaxia.bonus.ataque - 1) * 100)}% Dano Ataque`, inline: false },
                     { name: '🎯 Poder do Servidor', value: `${poderTotal.toLocaleString()}`, inline: true },
-                    { name: '🏆 Conquistas', value: guildData.conquistas.length > 0 ? guildData.conquistas.join('\n') : 'Nenhuma ainda', inline: false }
+                    { name: '🏆 Conquistas', value: guildData.conquistas.length > 0 ? guildData.conquistas.slice(-5).join('\n') : 'Nenhuma ainda', inline: false }
                 );
             
             await message.reply({ embeds: [embed] });
@@ -179,7 +179,7 @@ module.exports = {
             const donoAtual = Object.entries(db.galaxias).find(([_, g]) => g.galaxiaAtual === galaxiaId);
             
             if (donoAtual && donoAtual[0] !== guildId) {
-                return message.reply(`❌ A ${galaxia.nome} já está dominada por **${donoAtual[1].nome}**! Use \`bt!galaxia guerra ${galaxiaId}\` para atacar!`);
+                return message.reply(`❌ A ${galaxia.nome} já está dominada por **${donoAtual[1].nome}**! Use \`bt!galaxia guerra "${galaxia.nome}"\` para atacar!`);
             }
             
             // Calcular poder do servidor
@@ -221,9 +221,10 @@ module.exports = {
                 }
             }
             
-            if (!galaxiaId) return message.reply('❌ Galáxia não encontrada!');
+            if (!galaxiaId) return message.reply('❌ Galáxia não encontrada! Use `bt!galaxia listar`');
             
-            const donoAtual = Object.entries(db.galaxias).find(([_, g]) => g.galaxiaAtual === galaxiaId);
+            const dbAtual = getDB();
+            const donoAtual = Object.entries(dbAtual.galaxias).find(([_, g]) => g.galaxiaAtual === galaxiaId);
             
             if (!donoAtual) {
                 return message.reply(`❌ A ${galaxias[galaxiaId].nome} não está dominada! Use \`bt!galaxia conquistar\` primeiro.`);
@@ -238,8 +239,9 @@ module.exports = {
             const servidorDefensorId = donoAtual[0];
             const servidorDefensor = client.guilds.cache.get(servidorDefensorId);
             
-            const poderAtacante = calcularPoderServidor(servidorAtacante, db);
-            const poderDefensor = calcularPoderServidor(servidorDefensor, db) + (galaxia.defesa * 0.2);
+            const poderAtacante = calcularPoderServidor(servidorAtacante, dbAtual);
+            const poderDefensor = calcularPoderServidor(servidorDefensor, dbAtual) + (galaxia.defesa * 0.2);
+            const chanceVitoria = Math.min(95, Math.max(5, Math.round((poderAtacante / poderDefensor) * 50 + 10)));
             
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
@@ -248,48 +250,109 @@ module.exports = {
                 .addFields(
                     { name: '⚔️ Poder Atacante', value: `${poderAtacante.toLocaleString()}`, inline: true },
                     { name: '🛡️ Poder Defensor', value: `${poderDefensor.toLocaleString()}`, inline: true },
-                    { name: '📊 Chance de Vitória', value: `${Math.min(95, Math.round((poderAtacante / poderDefensor) * 50 + 10))}%`, inline: true }
-                );
+                    { name: '📊 Chance de Vitória', value: `${chanceVitoria}%`, inline: true }
+                )
+                .setFooter({ text: 'A batalha começará em 10 segundos... Use !galaxia rendicao para se render' });
             
             await message.reply({ embeds: [embed] });
             
-            // Simular batalha após 5 segundos
-            setTimeout(async () => {
-                const vitoriaAtacante = poderAtacante > poderDefensor;
-                const dbAtual = getDB();
-                const guildAtual = dbAtual.galaxias[guildId];
-                const guildDefensor = dbAtual.galaxias[servidorDefensorId];
+            // Criar collector para rendição
+            const filter = (m) => m.content.toLowerCase() === 'bt!galaxia rendicao' && m.author.id === message.author.id;
+            const collector = message.channel.createMessageCollector({ filter, time: 10000, max: 1 });
+            
+            let rendido = false;
+            
+            collector.on('collect', async () => {
+                rendido = true;
+                await message.channel.send(`🏳️ **${servidorDefensor?.name}** se rendeu! **${servidorAtacante.name}** venceu sem lutar!`);
                 
-                if (vitoriaAtacante && guildDefensor && guildDefensor.galaxiaAtual === galaxiaId) {
-                    // Atacante vence
-                    guildAtual.galaxiaAtual = galaxiaId;
-                    guildDefensor.galaxiaAtual = null;
-                    guildAtual.conquistas.push(`⚔️ Tomou ${galaxia.nome} de ${servidorDefensor?.name || 'desconhecido'} em ${new Date().toLocaleDateString()}`);
-                    saveDB(dbAtual);
+                // Processar rendição
+                const dbFinal = getDB();
+                const guildAtualFinal = dbFinal.galaxias[guildId];
+                const guildDefensorFinal = dbFinal.galaxias[servidorDefensorId];
+                
+                if (guildDefensorFinal && guildDefensorFinal.galaxiaAtual === galaxiaId) {
+                    guildAtualFinal.galaxiaAtual = galaxiaId;
+                    guildDefensorFinal.galaxiaAtual = null;
+                    guildAtualFinal.conquistas.push(`⚔️ ${galaxia.nome} se rendeu para ${servidorAtacante.name} em ${new Date().toLocaleDateString()}`);
+                    saveDB(dbFinal);
                     
                     const resultadoEmbed = new EmbedBuilder()
                         .setColor(0x00FF00)
-                        .setTitle('🏆 VITÓRIA NA GUERRA!')
-                        .setDescription(`**${servidorAtacante.name}** conquistou a ${galaxia.nome}!`)
-                        .addFields(
-                            { name: '🔥 Poder usado', value: `${poderAtacante.toLocaleString()}`, inline: true },
-                            { name: '✨ Bônus adquiridos', value: `💰 +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs`, inline: true }
-                        );
-                    
-                    await message.channel.send({ embeds: [resultadoEmbed] });
-                } else {
-                    // Defensor vence
-                    const resultadoEmbed = new EmbedBuilder()
-                        .setColor(0xFF0000)
-                        .setTitle('💀 DERROTA NA GUERRA!')
-                        .setDescription(`**${servidorAtacante.name}** falhou em conquistar a ${galaxia.nome}!`)
-                        .addFields(
-                            { name: '🛡️ Defensores', value: `${servidorDefensor?.name || 'Servidor Desconhecido'}`, inline: true }
-                        );
+                        .setTitle('🏆 VITÓRIA POR RENDIÇÃO!')
+                        .setDescription(`**${servidorAtacante.name}** conquistou a ${galaxia.nome} sem luta!`);
                     
                     await message.channel.send({ embeds: [resultadoEmbed] });
                 }
-            }, 5000);
+            });
+            
+            // Simular batalha após 10 segundos
+            setTimeout(async () => {
+                if (rendido) return;
+                
+                try {
+                    const dbFinal = getDB();
+                    const guildAtualFinal = dbFinal.galaxias[guildId];
+                    const guildDefensorFinal = dbFinal.galaxias[servidorDefensorId];
+                    
+                    if (!guildDefensorFinal || guildDefensorFinal.galaxiaAtual !== galaxiaId) {
+                        return message.channel.send(`⚠️ A ${galaxia.nome} mudou de dono durante a batalha! Guerra cancelada.`);
+                    }
+                    
+                    const poderAtacanteFinal = calcularPoderServidor(servidorAtacante, dbFinal);
+                    const poderDefensorFinal = calcularPoderServidor(servidorDefensor, dbFinal) + (galaxia.defesa * 0.2);
+                    
+                    const vitoriaAtacante = poderAtacanteFinal > poderDefensorFinal;
+                    
+                    if (vitoriaAtacante) {
+                        // Atacante vence
+                        guildAtualFinal.galaxiaAtual = galaxiaId;
+                        guildDefensorFinal.galaxiaAtual = null;
+                        guildAtualFinal.conquistas.push(`⚔️ Tomou ${galaxia.nome} de ${servidorDefensor?.name || 'desconhecido'} em ${new Date().toLocaleDateString()}`);
+                        saveDB(dbFinal);
+                        
+                        const resultadoEmbed = new EmbedBuilder()
+                            .setColor(0x00FF00)
+                            .setTitle('🏆 VITÓRIA NA GUERRA!')
+                            .setDescription(`**${servidorAtacante.name}** conquistou a ${galaxia.nome}!`)
+                            .addFields(
+                                { name: '🔥 Poder usado', value: `${poderAtacanteFinal.toLocaleString()}`, inline: true },
+                                { name: '✨ Bônus adquiridos', value: `💰 +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs`, inline: true }
+                            );
+                        
+                        await message.channel.send({ embeds: [resultadoEmbed] });
+                    } else {
+                        // Defensor vence - atacante perde recursos
+                        const perdaRecursos = Math.floor(guildAtualFinal.recursos * 0.1);
+                        guildAtualFinal.recursos = Math.max(0, guildAtualFinal.recursos - perdaRecursos);
+                        saveDB(dbFinal);
+                        
+                        const resultadoEmbed = new EmbedBuilder()
+                            .setColor(0xFF0000)
+                            .setTitle('💀 DERROTA NA GUERRA!')
+                            .setDescription(`**${servidorAtacante.name}** falhou em conquistar a ${galaxia.nome}!`)
+                            .addFields(
+                                { name: '💸 Recursos perdidos', value: `${perdaRecursos.toLocaleString()} Orbs`, inline: true },
+                                { name: '🛡️ Defensores', value: `${servidorDefensor?.name || 'Servidor Desconhecido'}`, inline: true }
+                            );
+                        
+                        await message.channel.send({ embeds: [resultadoEmbed] });
+                    }
+                } catch (error) {
+                    console.error('Erro na batalha:', error);
+                    message.channel.send('❌ Ocorreu um erro durante a batalha!');
+                }
+            }, 10000);
+        }
+        
+        // Comando: rendicao (render guerra)
+        else if (subcmd === 'rendicao') {
+            const embed = new EmbedBuilder()
+                .setColor(0xFF0000)
+                .setTitle('🏳️ RENDIÇÃO')
+                .setDescription(`**${guildName}** se rendeu na guerra atual!`);
+            
+            await message.reply({ embeds: [embed] });
         }
         
         // Comando: bonus (ver bônus ativos)
@@ -366,7 +429,6 @@ module.exports = {
                 return message.reply('❌ Use: `bt!galaxia investir <quantia>`');
             }
             
-            // Verificar se o usuário tem permissão (admin)
             if (!message.member.permissions.has('Administrator')) {
                 return message.reply('❌ Apenas administradores podem investir recursos do servidor!');
             }
@@ -385,6 +447,40 @@ module.exports = {
             await message.reply(`✅ Servidor investiu ${quantia.toLocaleString()} recursos! Poder de domínio aumentou para ${guildAtual.poder}%`);
         }
         
+        // Comando: doar (doar recursos para o servidor)
+        else if (subcmd === 'doar') {
+            const quantia = parseInt(args[1]);
+            
+            if (!quantia || quantia <= 0) {
+                return message.reply('❌ Use: `bt!galaxia doar <quantia>`');
+            }
+            
+            const dbAtual = getDB();
+            const userId = message.author.id;
+            
+            if (!dbAtual.usuarios[userId]) {
+                dbAtual.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+            }
+            
+            if ((dbAtual.usuarios[userId].carteira || 0) < quantia) {
+                return message.reply(`❌ Você não tem ${quantia.toLocaleString()} Orbs para doar!`);
+            }
+            
+            dbAtual.usuarios[userId].carteira -= quantia;
+            dbAtual.galaxias[guildId].recursos += quantia;
+            saveDB(dbAtual);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle('🎁 Doação Realizada!')
+                .setDescription(`${message.author} doou **${quantia.toLocaleString()} Orbs** para o servidor!`)
+                .addFields(
+                    { name: '💰 Recursos do Servidor', value: `${dbAtual.galaxias[guildId].recursos.toLocaleString()} Orbs`, inline: true }
+                );
+            
+            await message.reply({ embeds: [embed] });
+        }
+        
         // Comando: ajuda
         else {
             const embed = new EmbedBuilder()
@@ -396,9 +492,11 @@ module.exports = {
                     { name: '🎯 `bt!galaxia conquistar <nome>`', value: 'Tenta conquistar uma galáxia', inline: false },
                     { name: 'ℹ️ `bt!galaxia info`', value: 'Mostra informações da sua galáxia', inline: false },
                     { name: '⚔️ `bt!galaxia guerra <nome>`', value: 'Declara guerra para tomar uma galáxia', inline: false },
+                    { name: '🏳️ `bt!galaxia rendicao`', value: 'Se rende na guerra atual', inline: false },
                     { name: '✨ `bt!galaxia bonus`', value: 'Mostra os bônus ativos', inline: false },
                     { name: '🏆 `bt!galaxia ranking`', value: 'Ranking de servidores', inline: false },
-                    { name: '💰 `bt!galaxia investir <valor>`', value: 'Investe recursos para fortalecer domínio', inline: false }
+                    { name: '💰 `bt!galaxia investir <valor>`', value: 'Investe recursos (admin)', inline: false },
+                    { name: '🎁 `bt!galaxia doar <valor>`', value: 'Doa Orbs para o servidor', inline: false }
                 )
                 .setFooter({ text: 'Cada galáxia oferece bônus únicos para o servidor!' });
             
@@ -410,11 +508,11 @@ module.exports = {
 // Função para calcular poder do servidor
 function calcularPoderServidor(guild, db) {
     let poder = 0;
-    const guildData = db.galaxias?.[guild.id];
+    const guildData = db.galaxias?.[guild?.id];
     
     if (guildData) {
         poder += guildData.poder || 0;
-        poder += Math.floor(guild.memberCount * 10);
+        poder += Math.floor((guild?.memberCount || 0) * 10);
         
         if (guildData.galaxiaAtual) {
             const galaxia = galaxias[guildData.galaxiaAtual];
