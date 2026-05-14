@@ -19,7 +19,7 @@ module.exports = {
                     { name: '⚡ Tipo', value: evento.efeito === 'positivo' ? '✨ Positivo' : evento.efeito === 'negativo' ? '💀 Negativo' : '🌌 Neutro', inline: true },
                     { name: '📊 Raridade', value: `${(evento.chance * 100)}%`, inline: true }
                 )
-                .setFooter({ text: 'Eventos acontecem aleatoriamente durante ações!' });
+                .setFooter({ text: '🌠 Orbit • Sistema de Eventos' });
             
             await message.reply({ embeds: [embed] });
         } else {
@@ -27,7 +27,7 @@ module.exports = {
                 .setColor(0x3498DB)
                 .setTitle('🌌 Calma Cósmica')
                 .setDescription('Nenhum evento especial está acontecendo no momento.\nContinue explorando para encontrar anomalias!')
-                .setFooter({ text: 'Eventos podem ocorrer a qualquer momento!' });
+                .setFooter({ text: '🌠 Orbit • Eventos ocorrem aleatoriamente' });
             
             await message.reply({ embeds: [embed] });
         }
