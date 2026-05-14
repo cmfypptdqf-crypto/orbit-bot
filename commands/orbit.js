@@ -1,6 +1,6 @@
 // commands/orbit.js
 const { EmbedBuilder } = require('discord.js');
-const { getOrbitResponse, getRandomFrase, checkRandomEvent } = require('../utilidades/orbitAI.js');
+const { getOrbitResponse, getRandomFrase, checkRandomEvent } = require('./utilidades/orbitAI.js');
 
 module.exports = {
     name: 'orbit',
