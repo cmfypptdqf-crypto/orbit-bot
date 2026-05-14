@@ -16,7 +16,7 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-const nomesItens = { '1': '🔭 Telescópio', '2': '🚀 Nave', '3': '💍 Anel', '4': '🛡️ Escudo', '5': '👻 Capa' };
+const nomesItens = { '1': '🔭 Telescópio', '2': '🚀 Nave', '3': '💍 Anel', '4': '🛡️ Escudo', '5': '👻 Capa', '13': '📦 Nebula Crate' };
 
 module.exports = {
     name: 'trade',
