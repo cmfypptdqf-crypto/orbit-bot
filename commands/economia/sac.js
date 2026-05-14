@@ -1,6 +1,8 @@
+// commands/economia/sacar.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { getRandomFrase } = require('../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -17,7 +19,7 @@ function saveDB(data) {
 
 module.exports = {
     name: 'sacar',
-    aliases: ['saque', 'withdraw'],
+    aliases: ['saque', 'withdraw', 'retirar'],
     
     async executePrefix(message, args, client) {
         let amount = args[0];
@@ -29,33 +31,64 @@ module.exports = {
             saveDB(db);
         }
         
+        let carteira = db.usuarios[userId].carteira || 0;
         let banco = db.usuarios[userId].banco || 0;
         
-        if (!amount) return message.reply(`❌ Use: ${client.prefix}sacar <valor> ou ${client.prefix}sacar all`);
+        if (!amount) {
+            const fraseErro = getRandomFrase('erro');
+            return message.reply(`${fraseErro}\n❌ Use: \`bt!sacar <valor>\` ou \`bt!sacar all\``);
+        }
         
+        // Processar valor
         if (amount.toLowerCase() === 'all') {
             amount = banco;
         } else {
             amount = parseInt(amount);
-            if (isNaN(amount)) return message.reply('❌ Digite um número válido!');
+            if (isNaN(amount)) {
+                const fraseErro = getRandomFrase('erro');
+                return message.reply(`${fraseErro}\n❌ Digite um número válido!`);
+            }
         }
         
-        if (amount <= 0) return message.reply('❌ Digite um valor positivo!');
-        if (amount > banco) return message.reply(`❌ Você só tem ${banco.toLocaleString()} orbs no céu!`);
+        // Validações
+        if (amount <= 0) {
+            return message.reply('❌ Digite um valor positivo!');
+        }
         
+        if (amount > banco) {
+            return message.reply(`❌ Você só tem ${banco.toLocaleString()} Orbs na Estação!`);
+        }
+        
+        // Realizar saque
         db.usuarios[userId].banco = banco - amount;
-        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + amount;
-        
+        db.usuarios[userId].carteira = carteira + amount;
         saveDB(db);
         
+        const fraseSucesso = getRandomFrase('sucesso');
+        
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle('💸 Saque Realizado!')
-            .setDescription(`Você tirou **${amount.toLocaleString()} orbs** do céu !`)
+            .setColor(0xFFA500)
+            .setTitle(`💸 ${fraseSucesso}`)
+            .setDescription(`📡 Você sacou **${amount.toLocaleString()} Orbs** da Estação Espacial!`)
             .addFields(
-                { name: '💵 baú', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true },
-                { name: '🏦 céu', value: `${db.usuarios[userId].banco.toLocaleString()} orbs`, inline: true }
-            );
+                { 
+                    name: '💵 Núcleo (Carteira)',
+                    value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`,
+                    inline: true
+                },
+                { 
+                    name: '🏦 Estação (Banco)',
+                    value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`,
+                    inline: true
+                },
+                { 
+                    name: '📊 Patrimônio Total',
+                    value: `${(db.usuarios[userId].carteira + db.usuarios[userId].banco).toLocaleString()} Orbs`,
+                    inline: true
+                }
+            )
+            .setFooter({ text: '🌌 Orbit • Use seus Orbs sabiamente, comandante!' })
+            .setTimestamp();
         
         await message.reply({ embeds: [embed] });
     }
