@@ -41,7 +41,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
                 .setTitle('🔧 Receitas de Crafting')
-                .setDescription('Use `!craft fazer <nome>` para fabricar um item');
+                .setDescription('Use `bt!craft fazer <nome>` para fabricar um item');
             
             for (const [nome, recipe] of Object.entries(recipes)) {
                 const ingredientes = Object.entries(recipe.ingredientes)
@@ -77,7 +77,7 @@ module.exports = {
             const recipe = recipes[recipeKey];
             
             if (!recipe) {
-                return message.reply('❌ Receita não encontrada! Use `!craft receitas` para ver as receitas disponíveis.');
+                return message.reply('❌ Receita não encontrada! Use `bt!craft receitas` para ver as receitas disponíveis.');
             }
             
             const db = getDB();
@@ -140,8 +140,8 @@ module.exports = {
                 .setTitle('🔧 Sistema de Crafting')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
-                    { name: '📋 `!craft receitas`', value: 'Mostra todas as receitas disponíveis', inline: false },
-                    { name: '⚙️ `!craft fazer <nome>`', value: 'Fabricar um item (ex: `!craft fazer Nave Hiperespacial`)', inline: false }
+                    { name: '📋 `bt!craft receitas`', value: 'Mostra todas as receitas disponíveis', inline: false },
+                    { name: '⚙️ `bt!craft fazer <nome>`', value: 'Fabricar um item (ex: `bt!craft fazer Nave Hiperespacial`)', inline: false }
                 );
             
             await message.reply({ embeds: [embed] });
