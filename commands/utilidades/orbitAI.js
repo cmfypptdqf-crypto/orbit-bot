@@ -17,8 +17,8 @@ function getRandomFrase(tipo) {
     const frases = {
         'inicio': orbitPersonality.frasesInicio,
         'erro': orbitPersonality.frasesErro,
-        'sucesso': orbitPersonality.frasesSucesso,
-        'cooldown': orbitPersonality.frasesCooldown
+        'sucesso': orbitPersonality.frasesSucesso
+        
     };
     const lista = frases[tipo] || orbitPersonality.frasesSucesso;
     return lista[Math.floor(Math.random() * lista.length)];
