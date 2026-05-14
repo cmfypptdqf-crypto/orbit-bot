@@ -36,7 +36,6 @@ module.exports = {
             db.usuarios[userId] = { carteira: 0, banco: 0, titulos: [], tituloAtivo: null, xpTotal: 0 };
         }
         
-        const totalOrbs = (db.usuarios[userId].carteira || 0) + (db.usuarios[userId].banco || 0);
         const nivelUsuario = calcularNivel(db.usuarios[userId].xpTotal || 0);
         
         if (subcmd === 'listar') {
@@ -49,7 +48,7 @@ module.exports = {
                 const liberado = nivelUsuario >= titulo.nivelMin;
                 embed.addFields({
                     name: `${id} - ${titulo.nome}`,
-                    value: `💰 ${titulo.preco.toLocaleString()} Orbs | ${liberado ? '🟢 Disponível' : `🔒 Nível ${titulo.nivelMin}+`}`,
+                    value: `💰 ${titulo.preco.toLocaleString()} Orbs | ${liberado ? '🟢 Disponível' : `🔒 Stellar XP Nível ${titulo.nivelMin}+`}`,
                     inline: false
                 });
             }
@@ -62,7 +61,7 @@ module.exports = {
             
             const titulo = titulos[id];
             if (nivelUsuario < titulo.nivelMin) {
-                return message.reply(`❌ Você precisa ser nível ${titulo.nivelMin}!`);
+                return message.reply(`❌ Você precisa ser Stellar XP nível ${titulo.nivelMin}!`);
             }
             if ((db.usuarios[userId].carteira || 0) < titulo.preco) {
                 return message.reply(`❌ Você precisa de ${titulo.preco.toLocaleString()} Orbs!`);
