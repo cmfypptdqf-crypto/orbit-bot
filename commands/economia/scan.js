@@ -7,7 +7,7 @@ const cooldowns = new Map();
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {}, vip_list: {} }));
     }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
@@ -33,86 +33,73 @@ module.exports = {
         const db = getDB();
         
         if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {}, total_exploracoes: 0 };
         }
         
-        // Locais com possibilidade de perda
+        // Multiplicador VIP
+        let multiplicador = 1.0;
+        let vipTier = null;
+        
+        if (db.vip_list[userId] && db.vip_list[userId].expira > Date.now()) {
+            multiplicador = db.vip_list[userId].multiplicador;
+            vipTier = db.vip_list[userId].tier;
+        }
+        
+        // Itens de boost
+        const inventario = db.usuarios[userId].inventario || {};
+        let boostItem = null;
+        
+        if (inventario['3'] > 0) { // Anel Cósmico
+            multiplicador *= 1.15;
+            boostItem = '💍 Anel Cósmico';
+        }
+        if (inventario['1'] > 0) { // Telescópio
+            multiplicador *= 1.05;
+            boostItem = boostItem ? `${boostItem} + 🔭 Telescópio` : '🔭 Telescópio';
+        }
+        
+        // Local sorteado
         const locais = [
-            { nome: '🗑️ Lixo Espacial', ganho: [100, 400}, perda: [50, 150], chancePerda: 0.2, cor: 0x808080 },
-            { nome: '🚀 Nave Abandonada', ganho: [500, 1800], perda: [200, 600], chancePerda: 0.15, cor: 0x9B59B6 },
-            { nome: '🕳️ Crateras de Marte', ganho: [200, 600], perda: [100, 300], chancePerda: 0.25, cor: 0xE67E22 },
-            { nome: '💥 Estação Destruída', ganho: [300, 1200], perda: [150, 500], chancePerda: 0.3, cor: 0xFF0000 },
-            { nome: '🪐 Anéis de Saturno', ganho: [400, 1500], perda: [180, 450], chancePerda: 0.1, cor: 0xF1C40F },
-            { nome: '🌑 Base Lunar', ganho: [250, 800], perda: [120, 350], chancePerda: 0.2, cor: 0x3498DB },
-            { nome: '☄️ Asteroide Rico', ganho: [600, 2000], perda: [300, 800], chancePerda: 0.35, cor: 0x00FF00 },
-            { nome: '🛸 Disco Voador', ganho: [800, 2500], perda: [400, 1000], chancePerda: 0.25, cor: 0x8E44AD },
-            { nome: '🌊 Oceanos de Europa', ganho: [150, 500], perda: [80, 200], chancePerda: 0.15, cor: 0x1ABC9C },
-            { nome: '🏛️ Ruínas Alienígenas', ganho: [1000, 3000], perda: [500, 1500], chancePerda: 0.4, cor: 0xFFD700 }
+            { nome: '🗑️ Lixo Espacial', ganho: [100, 400], cor: 0x808080 },
+            { nome: '🚀 Nave Abandonada', ganho: [500, 1800], cor: 0x9B59B6 },
+            { nome: '🕳️ Crateras de Marte', ganho: [200, 600], cor: 0xE67E22 },
+            { nome: '💥 Estação Destruída', ganho: [300, 1200], cor: 0xFF0000 },
+            { nome: '🪐 Anéis de Saturno', ganho: [400, 1500], cor: 0xF1C40F },
+            { nome: '🌑 Base Lunar', ganho: [250, 800], cor: 0x3498DB },
+            { nome: '☄️ Asteroide Rico', ganho: [600, 2000], cor: 0x00FF00 },
+            { nome: '🛸 Disco Voador', ganho: [800, 2500], cor: 0x8E44AD },
+            { nome: '🏛️ Ruínas Alienígenas', ganho: [1000, 3000], cor: 0xFFD700 }
         ];
         
         const local = locais[Math.floor(Math.random() * locais.length)];
+        const ganhoBase = Math.floor(Math.random() * (local.ganho[1] - local.ganho[0] + 1) + local.ganho[0]);
+        const ganhoFinal = Math.floor(ganhoBase * multiplicador);
         
-        // Decidir se vai ganhar ou perder
-        const deuRuim = Math.random() < local.chancePerda;
-        
-        let embed;
-        
-        if (deuRuim) {
-            const perda = Math.floor(Math.random() * (local.perda[1] - local.perda[0] + 1) + local.perda[0]);
-            const perdaReal = Math.min(perda, db.usuarios[userId].carteira || 0);
-            
-            db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) - perdaReal;
-            saveDB(db);
-            
-            const perigoEventos = [
-                'Uma explosão danificou seu equipamento!',
-                'Piratas espaciais te emboscaram!',
-                'A nave estava armadilhada!',
-                'Radiação cósmica danificou seus Orbs!',
-                'Um buraco negro quase te sugou!',
-                'Inimigos alienígenas te atacaram!'
-            ];
-            
-            const perigo = perigoEventos[Math.floor(Math.random() * perigoEventos.length)];
-            
-            embed = new EmbedBuilder()
-                .setColor(local.cor)
-                .setTitle('⚠️ Exploração Perigosa')
-                .setDescription(`📡 Sondando: **${local.nome}**\n${perigo}`)
-                .addFields(
-                    { name: '💸 Você perdeu', value: `**-${perdaReal.toLocaleString()} Orbs**`, inline: true },
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
-        } else {
-            const ganho = Math.floor(Math.random() * (local.ganho[1] - local.ganho[0] + 1) + local.ganho[0]);
-            
-            db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
-            saveDB(db);
-            
-            const sucessoEventos = [
-                'Você encontrou uma cápsula cheia de Orbs!',
-                'Restos de uma civilização avançada!',
-                'O baú do tesouro estava escondido aqui!',
-                'Orbs raros flutuando no vácuo!',
-                'Tecnologia alienígena convertida em Orbs!'
-            ];
-            
-            const sucesso = sucessoEventos[Math.floor(Math.random() * sucessoEventos.length)];
-            
-            embed = new EmbedBuilder()
-                .setColor(local.cor)
-                .setTitle('🔍 Exploração Espacial')
-                .setDescription(`📡 Sondando: **${local.nome}**\n${sucesso}`)
-                .addFields(
-                    { name: '💎 Você encontrou', value: `**+${ganho.toLocaleString()} Orbs**`, inline: true },
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
-        }
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganhoFinal;
+        db.usuarios[userId].total_exploracoes = (db.usuarios[userId].total_exploracoes || 0) + 1;
+        saveDB(db);
         
         cooldowns.set(cooldownKey, Date.now());
         
-        embed.setFooter({ text: 'Próxima exploração disponível em 10 minutos' })
-            .setTimestamp();
+        const embed = new EmbedBuilder()
+            .setColor(local.cor)
+            .setTitle('🔍 Exploração Espacial')
+            .setDescription(`📡 Sondando: **${local.nome}**`)
+            .addFields(
+                { name: '💰 Ganho Base', value: `${ganhoBase.toLocaleString()} Orbs`, inline: true },
+                { name: '✨ Multiplicadores', value: `${multiplicador.toFixed(2)}x`, inline: true },
+                { name: '🎉 Total Encontrado', value: `**+${ganhoFinal.toLocaleString()} Orbs**`, inline: false },
+                { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+            );
+        
+        if (vipTier) {
+            embed.addFields({ name: '⭐ VIP Ativo', value: `${vipTier.toUpperCase()} (${multiplicador}x)`, inline: true });
+        }
+        if (boostItem) {
+            embed.addFields({ name: '🎁 Item Ativo', value: boostItem, inline: true });
+        }
+        
+        embed.setFooter({ text: 'Próxima exploração em 10 minutos' });
         
         await message.reply({ embeds: [embed] });
     }
