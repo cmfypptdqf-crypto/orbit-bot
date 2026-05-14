@@ -55,24 +55,21 @@ module.exports = {
         const user = await client.users.fetch(userId);
         const barraProgresso = gerarBarraProgresso(progresso, 20);
         
-        const frasesInicio = ['📡 Sondando ativos orbitais...', '💰 Calculando núcleo financeiro...', '🌌 Escaneando sua carteira...'];
-        const fraseOrbit = frasesInicio[Math.floor(Math.random() * frasesInicio.length)];
-        
         const embed = new EmbedBuilder()
             .setColor(isVip ? 0xFFD700 : 0x00BFFF)
-            .setTitle(`🛸 ${fraseOrbit}`)
-            .setDescription(`📡 **${user.username}** | ${titulo}`)
+            .setTitle(`📡 ${user.username}`)
+            .setDescription(`✨ **${titulo}**`)
             .setThumbnail(user.displayAvatarURL())
             .addFields(
-                { name: '💎 ORBS', value: `💵 Carteira: **${carteira.toLocaleString()}**\n🏦 Banco: **${banco.toLocaleString()}**\n📊 Total: **${totalOrbs.toLocaleString()}**`, inline: true },
-                { name: '🏆 NÍVEL', value: `${barraProgresso}\n📊 ${xpAtual.toLocaleString()} / ${xpNecessario.toLocaleString()} XP (${progresso}%)`, inline: true }
+                { name: '💎 ORBS', value: `💵 Carteira: **${carteira.toLocaleString()}**\n🏦 Orbital Bank: **${banco.toLocaleString()}**\n📊 Total: **${totalOrbs.toLocaleString()}**`, inline: true },
+                { name: '✨ Stellar XP', value: `${barraProgresso}\n📊 ${xpAtual.toLocaleString()} / ${xpNecessario.toLocaleString()} XP (${progresso}%)`, inline: true }
             );
         
         if (isVip) {
-            embed.addFields({ name: '⭐ VIP', value: `**${vipTier?.toUpperCase()}** (${vipMult}x)`, inline: true });
+            embed.addFields({ name: '⭐ Orbit Prime', value: `**${vipTier?.toUpperCase()}** (${vipMult}x)`, inline: true });
         }
         
-        embed.setFooter({ text: '🌌 Orbit • Sistema Econômico Intergaláctico' }).setTimestamp();
+        embed.setFooter({ text: '✨ Stellar XP • Evolua através das estrelas' }).setTimestamp();
         await message.reply({ embeds: [embed] });
     }
 };
