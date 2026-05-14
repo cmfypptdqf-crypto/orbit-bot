@@ -11,7 +11,7 @@ module.exports = {
         const todosCooldowns = cooldownsManager.getAll(userId);
         
         const nomesComandos = {
-            'missao': '🚀 Missão', 'search': '🔍 Exploração', 'pirataria': '☄️ Pirataria',
+            'missao': '🎯 Galactic Quest', 'search': '🔍 Exploração', 'pirataria': '☄️ Pirataria',
             'daily': '📆 Diário', 'weekly': '📅 Semanal', 'beg': '🎭 Esmola', 'sortudo': '🍀 Sorte'
         };
         
