@@ -49,3 +49,34 @@ module.exports = {
             if (db.marketItems.length === 0) return message.reply('📭 Nenhum item à venda!');
             const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🛒 Marketplace');
             for (const item of db.marketItems.slice(0, 10)) {
+                const seller = await client.users.fetch(item.seller);
+                embed.addFields({ name: `ID: ${item.id}`, value: `🎁 ${nomesItens[item.itemId]} - ${item.preco} Orbs\n👤 ${seller.username}`, inline: false });
+            }
+            await message.reply({ embeds: [embed] });
+        }
+        
+        else if (subcmd === 'comprar') {
+            const marketId = parseInt(args[1]);
+            const item = db.marketItems.find(i => i.id === marketId);
+            if (!item) return message.reply('❌ Item não encontrado!');
+            
+            const userId = message.author.id;
+            if ((db.usuarios[userId]?.carteira || 0) < item.preco) return message.reply('❌ Saldo insuficiente!');
+            if (userId === item.seller) return message.reply('❌ Não pode comprar seus próprios itens!');
+            
+            db.usuarios[userId].carteira -= item.preco;
+            db.usuarios[item.seller].carteira += item.preco;
+            if (!db.usuarios[userId].inventario) db.usuarios[userId].inventario = {};
+            db.usuarios[userId].inventario[item.itemId] = (db.usuarios[userId].inventario[item.itemId] || 0) + 1;
+            
+            const index = db.marketItems.findIndex(i => i.id === marketId);
+            db.marketItems.splice(index, 1);
+            saveDB(db);
+            await message.reply(`✅ Comprado! Você recebeu ${nomesItens[item.itemId] || item.itemId}!`);
+        }
+        
+        else {
+            await message.reply('🛒 **Marketplace**\n`bt!market vender <id> <preco>`\n`bt!market listar`\n`bt!market comprar <id>`');
+        }
+    }
+};
