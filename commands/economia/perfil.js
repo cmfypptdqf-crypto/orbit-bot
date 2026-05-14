@@ -63,14 +63,14 @@ module.exports = {
             .setColor(isVip ? 0xFFD700 : 0x00BFFF)
             .setTitle(`📋 Perfil de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
-            .setDescription(`${titulo}${clanNome ? `\n🚀 Clã: ${clanNome}` : ''}`)
+            .setDescription(`${titulo}${clanNome ? `\n🚀 Star Federation: ${clanNome}` : ''}`)
             .addFields(
-                { name: '💎 ORBS', value: `💵 Carteira: **${carteira.toLocaleString()}**\n🏦 Banco: **${banco.toLocaleString()}**`, inline: true },
-                { name: '🏆 NÍVEL', value: `${barraProgresso}\n📊 ${xpAtual.toLocaleString()} / ${xpNecessario.toLocaleString()} XP`, inline: true }
+                { name: '💎 ORBS', value: `💵 Carteira: **${carteira.toLocaleString()}**\n🏦 Orbital Bank: **${banco.toLocaleString()}**`, inline: true },
+                { name: '✨ Stellar XP', value: `${barraProgresso}\n📊 ${xpAtual.toLocaleString()} / ${xpNecessario.toLocaleString()} XP`, inline: true }
             );
         
         if (isVip) {
-            embed.addFields({ name: '⭐ VIP', value: `**${vipTier?.toUpperCase()}** (${vipMult}x)`, inline: true });
+            embed.addFields({ name: '⭐ Orbit Prime', value: `**${vipTier?.toUpperCase()}** (${vipMult}x)`, inline: true });
         }
         
         embed.setFooter({ text: `🌌 Orbit • Use bt!perfil @usuario para ver outros perfis` });
