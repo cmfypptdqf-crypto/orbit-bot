@@ -37,36 +37,114 @@ module.exports = {
     aliases: ['loja', 'shop', 'mercado', 'galactic'],
     
     async executePrefix(message, args, client) {
-        const pagina = parseInt(args[0]) || 1;
+        let paginaAtual = parseInt(args[0]) || 1;
         const itensPorPagina = 5;
         const totalItens = Object.keys(itensLoja).length;
         const totalPaginas = Math.ceil(totalItens / itensPorPagina);
         
-        if (pagina < 1 || pagina > totalPaginas) {
+        if (paginaAtual < 1 || paginaAtual > totalPaginas) {
             return message.reply(`❌ Página inválida! Use 1 até ${totalPaginas}.`);
         }
         
-        const inicio = (pagina - 1) * itensPorPagina;
-        const itensPagina = Object.entries(itensLoja).slice(inicio, inicio + itensPorPagina);
-        
-        const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
-            .setTitle('🪐 Mercado Galáctico')
-            .setDescription('Use `bt!comprar <id>` para adquirir itens interestelares!\n🌌 Todas as transações são em **Orbs**')
-            .setFooter({ text: `Página ${pagina}/${totalPaginas}` });
-        
-        for (const [id, item] of itensPagina) {
-            let precoText = `${item.preco.toLocaleString()} Orbs`;
-            if (item.tipo === 'vip') {
-                precoText = `⭐ ${item.tier} | ${item.mult}x | ${item.dias} dias`;
+        function criarEmbed(pagina) {
+            const inicio = (pagina - 1) * itensPorPagina;
+            const itensPagina = Object.entries(itensLoja).slice(inicio, inicio + itensPorPagina);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0xFFD700)
+                .setTitle('🪐 Mercado Galáctico')
+                .setDescription('Use `bt!comprar <id>` para adquirir itens interestelares!\n🌌 Todas as transações são em **Orbs**')
+                .setFooter({ text: `Página ${pagina}/${totalPaginas} • Total: ${totalItens} itens` });
+            
+            for (const [id, item] of itensPagina) {
+                let precoText = `${item.preco.toLocaleString()} Orbs`;
+                if (item.tipo === 'vip') {
+                    precoText = `⭐ ${item.tier} | ${item.mult}x | ${item.dias} dias`;
+                }
+                embed.addFields({
+                    name: `${id} - ${item.nome}`,
+                    value: `💰 ${precoText}\n📝 ${item.descricao}`,
+                    inline: false
+                });
             }
-            embed.addFields({
-                name: `${id} - ${item.nome}`,
-                value: `💰 ${precoText}\n📝 ${item.descricao}`,
-                inline: false
-            });
+            
+            return embed;
         }
         
-        await message.reply({ embeds: [embed] });
+        // Se for apenas 1 página, não precisa de botões
+        if (totalPaginas === 1) {
+            const embed = criarEmbed(1);
+            return await message.reply({ embeds: [embed] });
+        }
+        
+        // Criar botões de navegação
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('prev_page')
+                    .setLabel('◀ Anterior')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(paginaAtual === 1),
+                new ButtonBuilder()
+                    .setCustomId('next_page')
+                    .setLabel('Próximo ▶')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(paginaAtual === totalPaginas)
+            );
+        
+        const embed = criarEmbed(paginaAtual);
+        const msg = await message.reply({ embeds: [embed], components: [row] });
+        
+        // Criar collector para os botões
+        const filter = (interaction) => {
+            return interaction.user.id === message.author.id && 
+                   (interaction.customId === 'prev_page' || interaction.customId === 'next_page');
+        };
+        
+        const collector = msg.createMessageComponentCollector({ filter, time: 60000 });
+        
+        collector.on('collect', async (interaction) => {
+            if (interaction.customId === 'prev_page' && paginaAtual > 1) {
+                paginaAtual--;
+            } else if (interaction.customId === 'next_page' && paginaAtual < totalPaginas) {
+                paginaAtual++;
+            } else {
+                return await interaction.deferUpdate();
+            }
+            
+            const novoEmbed = criarEmbed(paginaAtual);
+            const novoRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('prev_page')
+                        .setLabel('◀ Anterior')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(paginaAtual === 1),
+                    new ButtonBuilder()
+                        .setCustomId('next_page')
+                        .setLabel('Próximo ▶')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(paginaAtual === totalPaginas)
+                );
+            
+            await interaction.update({ embeds: [novoEmbed], components: [novoRow] });
+        });
+        
+        collector.on('end', async () => {
+            const disabledRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('prev_page')
+                        .setLabel('◀ Anterior')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('next_page')
+                        .setLabel('Próximo ▶')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(true)
+                );
+            await msg.edit({ components: [disabledRow] }).catch(() => {});
+        });
     }
 };
