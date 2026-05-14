@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const cooldownsManager = require('../utilidades/cooldownsManager.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -21,6 +22,11 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
+        
+        const cooldownCheck = cooldownsManager.check(userId, 'beg');
+        if (!cooldownCheck.available) {
+            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para pedir novamente!`);
+        }
         
         const eventos = [
             { texto: '👽 Um alienígena ficou com pena de você', ganho: [200, 400], cor: 0x9B59B6 },
@@ -43,6 +49,8 @@ module.exports = {
         
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
         saveDB(db);
+        
+        cooldownsManager.set(userId, 'beg');
         
         const embed = new EmbedBuilder()
             .setColor(evento.cor)
