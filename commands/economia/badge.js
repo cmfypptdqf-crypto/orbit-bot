@@ -42,7 +42,7 @@ module.exports = {
             .setThumbnail(message.author.displayAvatarURL());
         
         if (conquistadas.length > 0) {
-            embed.addFields({ name: '✅ CONQUISTADAS', value: conquistadas.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
+            embed.addFields({ name: '<a:h_checkazul:1503775331163705614> CONQUISTADAS', value: conquistadas.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
         }
         
         if (pendentes.length > 0) {
