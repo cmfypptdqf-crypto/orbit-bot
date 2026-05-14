@@ -49,7 +49,7 @@ module.exports = {
         if (!itemId || !itensLoja[itemId]) {
             // Mostrar IDs disponíveis
             const idsDisponiveis = Object.keys(itensLoja).join(', ');
-            return message.reply(`❌ ID inválido! IDs disponíveis: ${idsDisponiveis}\nUse \`!mercadogalactico\` para ver os itens.`);
+            return message.reply(`❌ ID inválido! IDs disponíveis: ${idsDisponiveis}\nUse \`bt!loja\` para ver os itens.`);
         }
         
         const item = itensLoja[itemId];
