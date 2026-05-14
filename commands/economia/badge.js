@@ -1,4 +1,4 @@
-// commands/economia/badge.js
+// commands/conquistas/badges.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -12,122 +12,44 @@ function getDB() {
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
+const todasBadges = [
+    { id: '1', nome: '🚀 Explorador Iniciante', desc: 'Complete 10 missões', requisito: (data) => (data.total_missoes || 0) >= 10, xp: 100 },
+    { id: '2', nome: '⭐ Veterano Espacial', desc: 'Complete 100 missões', requisito: (data) => (data.total_missoes || 0) >= 100, xp: 500 },
+    { id: '3', nome: '💰 Magnata Cósmico', desc: 'Acumule 1.000.000 Orbs', requisito: (data) => ((data.carteira || 0) + (data.banco || 0)) >= 1000000, xp: 1000 },
+    { id: '4', nome: '🛸 Caçador de Naves', desc: 'Realize 50 ataques', requisito: (data) => (data.total_ataques || 0) >= 50, xp: 500 },
+    { id: '5', nome: '👑 Lenda Galáctica', desc: 'Fique no Top 10 do ranking', requisito: (data) => (data.ranking || 0) <= 10, xp: 2000 }
+];
+
 module.exports = {
-    name: 'badge',
-    description: 'Suas medalhas conquistadas',
-    aliases: ['medalhas', 'conquistas'],
+    name: 'badges',
+    aliases: ['medalhas', 'conquistas', 'badge'],
     
     async executePrefix(message, args, client) {
-        const db = getDB();
         const userId = message.author.id;
+        const db = getDB();
         
         if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {}, total_missoes: 0, total_ataques: 0 };
+            db.usuarios[userId] = {};
         }
         
-        const userData = db.usuarios[userId];
-        const missoes = userData.total_missoes || 0;
-        const totalOrbs = (userData.carteira || 0) + (userData.banco || 0);
-        const ataques = userData.total_ataques || 0;
-        
-        // Verificar rank global (simulação - você precisa implementar o ranking real)
-        const rank = 15; // Placeholder - substitua pelo rank real do usuário
-        
-        // Definir medalhas com requisitos
-        const todasBadges = [
-            { 
-                nome: '🚀 Explorador Iniciante', 
-                desc: 'Completou 10 missões', 
-                requisito: missoes >= 10,
-                cor: '#808080' 
-            },
-            { 
-                nome: '⭐ Veterano Espacial', 
-                desc: 'Completou 100 missões', 
-                requisito: missoes >= 100,
-                cor: '#C0C0C0' 
-            },
-            { 
-                nome: '💰 Magnata Cósmico', 
-                desc: 'Acumulou 1.000.000 Orbs', 
-                requisito: totalOrbs >= 1000000,
-                cor: '#FFD700' 
-            },
-            { 
-                nome: '🛸 Caçador de Naves', 
-                desc: 'Realizou 50 ataques', 
-                requisito: ataques >= 50,
-                cor: '#FF6347' 
-            },
-            { 
-                nome: '👑 Lenda Galáctica', 
-                desc: 'Top 10 do ranking', 
-                requisito: rank <= 10,
-                cor: '#9B59B6' 
-            },
-            { 
-                nome: '💎 Colecionador', 
-                desc: 'Possui 10 itens diferentes', 
-                requisito: Object.keys(userData.inventario || {}).length >= 10,
-                cor: '#00BFFF' 
-            },
-            { 
-                nome: '⚔️ Guerreiro Estelar', 
-                desc: 'Venceu 20 batalhas', 
-                requisito: (userData.vitorias || 0) >= 20,
-                cor: '#FF4500' 
-            }
-        ];
-        
-        // Separar medalhas conquistadas e não conquistadas
-        const conquistadas = todasBadges.filter(b => b.requisito);
-        const bloqueadas = todasBadges.filter(b => !b.requisito);
+        const conquistadas = todasBadges.filter(b => b.requisito(db.usuarios[userId]));
+        const pendentes = todasBadges.filter(b => !b.requisito(db.usuarios[userId]));
         
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle(`🏅 Medalhas de ${message.author.username}`)
-            .setDescription(`📊 Total conquistadas: **${conquistadas.length}/${todasBadges.length}**`)
-            .setThumbnail(message.author.displayAvatarURL())
-            .setTimestamp();
+            .setTitle(`🏆 Conquistas de ${message.author.username}`)
+            .setDescription(`📊 Progresso: ${conquistadas.length}/${todasBadges.length}`)
+            .setThumbnail(message.author.displayAvatarURL());
         
         if (conquistadas.length > 0) {
-            embed.addFields({
-                name: '✅ MEDALHAS CONQUISTADAS',
-                value: conquistadas.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'),
-                inline: false
-            });
-        } else {
-            embed.addFields({
-                name: '✅ MEDALHAS CONQUISTADAS',
-                value: 'Nenhuma medalha ainda... Complete desafios!',
-                inline: false
-            });
+            embed.addFields({ name: '✅ CONQUISTADAS', value: conquistadas.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
         }
         
-        if (bloqueadas.length > 0) {
-            embed.addFields({
-                name: '🔒 MEDALHAS BLOQUEADAS',
-                value: bloqueadas.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'),
-                inline: false
-            });
+        if (pendentes.length > 0) {
+            embed.addFields({ name: '🔒 PRÓXIMAS', value: pendentes.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
         }
         
-        // Mostrar progresso
-        const progresso = [
-            `🚀 **Missões:** ${missoes}/100`,
-            `💰 **Orbs:** ${totalOrbs.toLocaleString()}/1.000.000`,
-            `🛸 **Ataques:** ${ataques}/50`,
-            `🎒 **Itens:** ${Object.keys(userData.inventario || {}).length}/10`
-        ];
-        
-        embed.addFields({
-            name: '📈 SEU PROGRESSO',
-            value: progresso.join('\n'),
-            inline: false
-        });
-        
-        embed.setFooter({ text: 'Complete os desafios para desbloquear mais medalhas!' });
-        
+        embed.setFooter({ text: 'Complete desafios para ganhar XP e conquistas!' });
         await message.reply({ embeds: [embed] });
     }
 };
