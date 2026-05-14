@@ -15,9 +15,9 @@ function getDB() {
 const nomesItens = {
     '1': '🔭 Telescópio', '2': '🚀 Nave Explorer', '3': '💍 Anel Cósmico',
     '4': '🛡️ Escudo', '5': '👻 Capa', '6': '🚨 Alarme',
-    '7': '⭐ VIP Bronze', '8': '⭐ VIP Prata', '9': '⭐ VIP Ouro',
-    '10': '⭐ VIP Diamante', '11': '🍀 Amuleto', '12': '📈 Ação',
-    '13': '🎰 Caça-Níquel', '14': '🚀 Nave Hiperespacial', '15': '💎 Cristal Cósmico'
+    '7': '⭐ Orbit Prime Bronze', '8': '⭐ Orbit Prime Prata', '9': '⭐ Orbit Prime Ouro',
+    '10': '⭐ Orbit Prime Diamante', '11': '🍀 Amuleto', '12': '📈 Ação',
+    '13': '📦 Nebula Crate', '14': '🚀 Nave Hiperespacial', '15': '💎 Cristal Cósmico'
 };
 
 module.exports = {
@@ -42,7 +42,7 @@ module.exports = {
         const itensLista = Object.entries(inventario);
         
         if (itensLista.length === 0) {
-            return message.reply(`🎒 Mochila de ${user.username} está vazia!`);
+            return message.reply(`🎒 Mochila de ${user.username} está vazia! Visite a **Galaxy Store** para comprar itens!`);
         }
         
         let totalItens = 0;
