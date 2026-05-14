@@ -26,7 +26,7 @@ module.exports = {
         
         if (subcmd === 'abrir') {
             const amount = parseInt(args[1]) || 2000;
-            if (isNaN(amount) || amount < 2000) return message.reply('❌ A **Nebula Crate** custa 2.000 Orbs! Use `bt!crate abrir`');
+            if (isNaN(amount) || amount < 2000) return message.reply('❌ Uma **Nebula Crate** custa 2.000 Orbs! Use `bt!crate abrir`');
             
             const db = getDB();
             if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
