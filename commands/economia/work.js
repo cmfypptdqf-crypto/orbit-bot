@@ -5,7 +5,6 @@ const path = require('path');
 const { calcularBonusTotal } = require('../utilidades/galaxiaBonus.js');
 const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../utilidades/orbitAI.js');
 const cooldownsManager = require('../utilidades/cooldownsManager.js');
-const { recalcularPoderClan } = require('../utilidades/clanUtils.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -22,14 +21,14 @@ function saveDB(data) {
 
 module.exports = {
     name: 'missao',
-    aliases: ['trabalhar', 'work', 'job', 'mission'],
+    aliases: ['trabalhar', 'work', 'job', 'quest'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
         const cooldownCheck = cooldownsManager.check(userId, 'missao');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde mais **${cooldownCheck.formatted}** para outra missão!`);
+            return message.reply(`⏰ Aguarde mais **${cooldownCheck.formatted}** para outra **Galactic Quest**!`);
         }
         
         const missoes = [
@@ -61,24 +60,20 @@ module.exports = {
         let eventoResultado = null;
         if (evento) eventoResultado = await processEvent(evento, userId, db, client);
         
-        // Atualizar poder do clã
-        if (db.usuarios[userId].clan) {
-            recalcularPoderClan(db.usuarios[userId].clan, db);
-        }
-        
         saveDB(db);
         cooldownsManager.set(userId, 'missao');
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle(`🤖 ${getComandoFrase('missao') || getRandomFrase('inicio')}`)
+            .setTitle(`🎯 ${getComandoFrase('missao') || getRandomFrase('inicio')}`)
             .setDescription(`📡 **${missao.nome}**\n${getRandomFrase('sucesso')}`)
             .addFields(
-                { name: '💰 Ganho', value: `+${ganhoFinal.toLocaleString()} Orbs`, inline: true },
+                { name: '💰 Recompensa', value: `+${ganhoFinal.toLocaleString()} Orbs`, inline: true },
                 { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
-                { name: '⭐ XP Ganho', value: `+${xpGanho.toLocaleString()} XP`, inline: true },
+                { name: '⭐ Stellar XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true },
                 { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-            );
+            )
+            .setFooter({ text: '🎯 Galactic Quest • Novas missões em breve!' });
         
         if (eventoResultado) {
             embed.addFields({ name: '🎲 EVENTO!', value: eventoResultado.mensagem, inline: false });
