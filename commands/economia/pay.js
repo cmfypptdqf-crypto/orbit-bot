@@ -46,7 +46,8 @@ module.exports = {
             .setColor(0x00FF00)
             .setTitle('💸 Transferência realizada!')
             .setDescription(`📡 ${message.author} pagou **${amount.toLocaleString()} Orbs** para ${user}`)
-            .addFields({ name: '💵 Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true });
+            .addFields({ name: '💵 Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true })
+            .setFooter({ text: '💸 Transação concluída com sucesso!' });
         
         await message.reply({ embeds: [embed] });
     }
