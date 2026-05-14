@@ -13,13 +13,13 @@ module.exports = {
         
         // Nomes amigáveis dos comandos
         const nomesComandos = {
-            'missao': '🚀 Missão',
-            'search': '🔍 Exploração',
-            'pirataria': '☄️ Pirataria',
-            'daily': '📆 Diário',
+            'missao': '🚀 Work',
+            'search': '🔍 Busca',
+            'pirataria': '☄️ Roubar',
+            'daily': '📆 Daily',
             'weekly': '📅 Semanal',
-            'beg': '🎭 Esmola',
-            'sortudo': '🍀 Sorte'
+            'beg': '🎭 Beg',
+            'sortudo': '🍀 Luck'
         };
         
         const embed = new EmbedBuilder()
