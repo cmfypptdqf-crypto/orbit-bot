@@ -14,7 +14,7 @@ function getDB() {
 
 const itensLoja = {
     '1': { nome: '🔭 Telescópio Avançado', preco: 500, descricao: '+5% em explorações', raridade: 'Comum' },
-    '2': { nome: '🚀 Nave Explorer', preco: 800, descricao: '+10% em missões', raridade: 'Comum' },
+    '2': { nome: '🚀 Nave Explorer', preco: 800, descricao: '+10% em Galactic Quests', raridade: 'Comum' },
     '3': { nome: '💍 Anel Cósmico', preco: 2000, descricao: '+15% em todas atividades', raridade: 'Raro' },
     '4': { nome: '🛡️ Escudo Energético', preco: 1500, descricao: 'Protege contra 1 roubo', raridade: 'Raro' },
     '5': { nome: '👻 Capa da Invisibilidade', preco: 3000, descricao: '+20% chance em ataques', raridade: 'Épico' },
