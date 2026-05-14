@@ -29,7 +29,7 @@ const galaxias = {
 
 module.exports = {
     name: 'galaxia',
-    aliases: ['galaxias'],
+    aliases: ['galaxias', 'cosmic'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
@@ -43,8 +43,9 @@ module.exports = {
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle('🌌 Galáxias Disponíveis')
-                .setDescription('Use `bt!galaxia conquistar <nome>` para dominar uma galáxia!');
+                .setTitle('🌌 Cosmic Dominion')
+                .setDescription('Domine uma galáxia para ganhar bônus para sua **Star Federation**!\nUse `bt!cosmic conquistar <nome>` para atacar.')
+                .setThumbnail(message.guild.iconURL());
             
             for (const [id, g] of Object.entries(galaxias)) {
                 const dono = Object.values(db.clans).find(c => c.galaxiaAtual === id);
@@ -54,11 +55,12 @@ module.exports = {
                     inline: false
                 });
             }
+            embed.setFooter({ text: '🌌 Cosmic Dominion • Domine territórios e ganhe bônus' });
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'conquistar') {
-            if (!clan) return message.reply('❌ Você precisa estar em um clã!');
+            if (!clan) return message.reply('❌ Você precisa estar em uma **Star Federation**!');
             if (!isLider) return message.reply('❌ Apenas o líder pode conquistar!');
             
             const nomeGalaxia = args.slice(1).join(' ');
@@ -76,7 +78,7 @@ module.exports = {
             
             const poderClan = recalcularPoderClan(clanId, db);
             if (poderClan < galaxia.defesa) {
-                return message.reply(`❌ Poder insuficiente! Precisa de ${galaxia.defesa.toLocaleString()}`);
+                return message.reply(`❌ Poder insuficiente! Sua **Star Federation** precisa de ${galaxia.defesa.toLocaleString()} de poder!`);
             }
             
             clan.galaxiaAtual = galaxiaId;
@@ -84,19 +86,20 @@ module.exports = {
             clan.conquistas.push(`🌌 Conquistou ${galaxia.nome} em ${new Date().toLocaleDateString()}`);
             saveDB(db);
             
-            await message.reply(`✅ **${clan.nome}** conquistou a ${galaxia.nome}!`);
+            await message.reply(`✅ **${clan.nome}** conquistou a ${galaxia.nome}! Agora todos os membros ganham +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs!`);
         }
         
         else if (subcmd === 'bonus') {
-            if (!clan) return message.reply('❌ Você não está em um clã!');
-            if (!clan.galaxiaAtual) return message.reply('❌ Seu clã não domina nenhuma galáxia!');
+            if (!clan) return message.reply('❌ Você não está em uma Star Federation!');
+            if (!clan.galaxiaAtual) return message.reply('❌ Sua Star Federation não domina nenhuma galáxia!');
             
             const galaxia = galaxias[clan.galaxiaAtual];
             const embed = new EmbedBuilder()
                 .setColor(galaxia.cor)
-                .setTitle(`✨ Bônus do Clã: ${clan.nome}`)
-                .setDescription(`Graças a ${galaxia.nome}:`)
-                .addFields({ name: '💰 Bônus de Orbs', value: `+${Math.round((galaxia.bonus.carteira - 1) * 100)}%`, inline: false });
+                .setTitle(`✨ Cosmic Dominion - Bônus da ${clan.nome}`)
+                .setDescription(`Graças a ${galaxia.nome}, sua **Star Federation** ganha:`)
+                .addFields({ name: '💰 Bônus de Orbs', value: `+${Math.round((galaxia.bonus.carteira - 1) * 100)}% em todos os ganhos`, inline: false })
+                .setFooter({ text: '🌌 Cosmic Dominion • Domine territórios e ganhe bônus' });
             await message.reply({ embeds: [embed] });
         }
         
@@ -107,9 +110,9 @@ module.exports = {
                 return (gb?.defesa || 0) - (ga?.defesa || 0);
             }).slice(0, 10);
             
-            if (ranking.length === 0) return message.reply('📊 Nenhum clã domina uma galáxia!');
+            if (ranking.length === 0) return message.reply('📊 Nenhuma Star Federation domina uma galáxia!');
             
-            const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🏆 Ranking de Dominação');
+            const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🏆 Ranking Cosmic Dominion');
             for (let i = 0; i < ranking.length; i++) {
                 const c = ranking[i];
                 const g = galaxias[c.galaxiaAtual];
@@ -121,8 +124,9 @@ module.exports = {
         else {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle('🌌 Sistema de Dominação')
-                .setDescription('Comandos: `listar`, `conquistar`, `bonus`, `ranking`');
+                .setTitle('🌌 Cosmic Dominion')
+                .setDescription('Comandos: `listar`, `conquistar`, `bonus`, `ranking`')
+                .setFooter({ text: '🌌 Cosmic Dominion • Domine territórios e ganhe bônus' });
             await message.reply({ embeds: [embed] });
         }
     }
