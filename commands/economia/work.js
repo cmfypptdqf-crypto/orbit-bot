@@ -2,7 +2,8 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularBonusTotal, checkCooldown, setCooldown, formatTime } = require('../../utilidades/galaxiaBonus.js');
+const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -24,10 +25,14 @@ module.exports = {
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
-        // ========== VERIFICAR COOLDOWN ==========
+        // Frase inicial do Orbit
+        const fraseInicial = getComandoFrase('missao') || getRandomFrase('inicio');
+        
+        // Verificar cooldown
         const cooldownCheck = checkCooldown(userId, 'missao');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ **Aguarde mais ${cooldownCheck.formatted}** para fazer outra missão!`);
+            const fraseCooldown = getRandomFrase('cooldown');
+            return message.reply(`${fraseCooldown}\n⏰ Aguarde mais **${cooldownCheck.formatted}** para outra missão!`);
         }
         
         const missoes = [
@@ -54,22 +59,41 @@ module.exports = {
         
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganhoFinal;
         db.usuarios[userId].total_missoes = (db.usuarios[userId].total_missoes || 0) + 1;
+        
+        // Verificar evento aleatório
+        const evento = checkRandomEvent();
+        let eventoResultado = null;
+        
+        if (evento) {
+            eventoResultado = await processEvent(evento, userId, db, client);
+        }
+        
         saveDB(db);
         
-        // ========== REGISTRAR COOLDOWN ==========
+        // Registrar cooldown
         setCooldown(userId, 'missao');
+        
+        const fraseSucesso = getRandomFrase('sucesso');
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('🚀 Missão Completa!')
-            .setDescription(`Você completou: **${missao.nome}**`)
+            .setTitle(`🤖 ${fraseInicial}`)
+            .setDescription(`📡 **${missao.nome}**\n${fraseSucesso}`)
             .addFields(
                 { name: '💰 Ganho Base', value: `${ganhoBase.toLocaleString()} Orbs`, inline: true },
                 { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
                 { name: '🎉 Total Recebido', value: `**+${ganhoFinal.toLocaleString()} Orbs**`, inline: false },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: '⏰ Próxima missão disponível em 1 hora!' });
+            .setFooter({ text: '🌌 Orbit • Próxima missão em 1 hora' })
+            .setTimestamp();
+        
+        if (eventoResultado) {
+            embed.addFields(
+                { name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false },
+                { name: '✨ Efeito', value: eventoResultado.efeito || 'Neutro', inline: true }
+            );
+        }
         
         await message.reply({ embeds: [embed] });
     }
