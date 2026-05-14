@@ -52,7 +52,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
             .setTitle('🪐 Mercado Galáctico')
-            .setDescription('Use `!comprar <id>` para adquirir itens interestelares!\n🌌 Todas as transações são em **Orbs**')
+            .setDescription('Use `bt!comprar <id>` para adquirir itens interestelares!\n🌌 Todas as transações são em **Orbs**')
             .setFooter({ text: `Página ${pagina}/${totalPaginas}` });
         
         for (const [id, item] of itensPagina) {
