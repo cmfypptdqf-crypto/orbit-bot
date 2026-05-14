@@ -19,13 +19,13 @@ const itensLoja = {
     '4': { nome: '🛡️ Escudo Energético', preco: 1500, descricao: 'Protege contra 1 roubo', raridade: 'Raro' },
     '5': { nome: '👻 Capa da Invisibilidade', preco: 3000, descricao: '+20% chance em ataques', raridade: 'Épico' },
     '6': { nome: '🚨 Alarme Anti-Roubo', preco: 1000, descricao: '-30% chance de ser roubado', raridade: 'Raro' },
-    '7': { nome: '⭐ VIP Bronze', preco: 10000, descricao: 'Multiplicador x1.2 por 7 dias', raridade: 'Especial' },
-    '8': { nome: '⭐ VIP Prata', preco: 25000, descricao: 'Multiplicador x1.5 por 15 dias', raridade: 'Especial' },
-    '9': { nome: '⭐ VIP Ouro', preco: 50000, descricao: 'Multiplicador x2.0 por 30 dias', raridade: 'Especial' },
-    '10': { nome: '⭐ VIP Diamante', preco: 100000, descricao: 'Multiplicador x3.0 por 60 dias', raridade: 'Especial' },
+    '7': { nome: '⭐ Orbit Prime Bronze', preco: 10000, descricao: 'Multiplicador x1.2 por 7 dias', raridade: 'Especial' },
+    '8': { nome: '⭐ Orbit Prime Prata', preco: 25000, descricao: 'Multiplicador x1.5 por 15 dias', raridade: 'Especial' },
+    '9': { nome: '⭐ Orbit Prime Ouro', preco: 50000, descricao: 'Multiplicador x2.0 por 30 dias', raridade: 'Especial' },
+    '10': { nome: '⭐ Orbit Prime Diamante', preco: 100000, descricao: 'Multiplicador x3.0 por 60 dias', raridade: 'Especial' },
     '11': { nome: '🍀 Amuleto da Sorte', preco: 5000, descricao: 'Dobra chance de eventos positivos', raridade: 'Épico' },
     '12': { nome: '📈 Ação da Bolsa', preco: 3000, descricao: '+50% em próximos 5 ganhos', raridade: 'Raro' },
-    '13': { nome: '🎰 Caça-Níquel', preco: 2000, descricao: 'Gire para ganhar prêmios', raridade: 'Comum' },
+    '13': { nome: '📦 Nebula Crate', preco: 2000, descricao: 'Abra e descubra tesouros cósmicos', raridade: 'Comum' },
     '14': { nome: '🚀 Nave Hiperespacial', preco: 50000, descricao: 'Item raro de colecionador', raridade: 'Lendário' },
     '15': { nome: '💎 Cristal Cósmico', preco: 100000, descricao: 'Item lendário de poder infinito', raridade: 'Lendário' }
 };
@@ -40,7 +40,7 @@ function getRaridadeIcon(raridade) {
 
 module.exports = {
     name: 'mercadogalactico',
-    aliases: ['loja', 'shop', 'mercado', 'galactic'],
+    aliases: ['loja', 'shop', 'galaxystore'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
@@ -55,8 +55,8 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('🪐 Mercado Galáctico')
-            .setDescription(`🌌 Bem-vindo ao mercado interestelar!\n💰 Saldo: **${carteira.toLocaleString()} Orbs** (🏦 Banco: ${banco.toLocaleString()})`)
+            .setTitle('🛒 Galaxy Store')
+            .setDescription(`🌌 Bem-vindo à **Galaxy Store**, comandante!\n💰 Saldo: **${carteira.toLocaleString()} Orbs** (🏦 Orbital Bank: ${banco.toLocaleString()})`)
             .setThumbnail(message.guild.iconURL());
         
         for (const [id, item] of Object.entries(itensLoja)) {
@@ -72,7 +72,8 @@ module.exports = {
             name: '💡 COMANDOS',
             value: '`bt!comprar <id>` - Adquirir item\n`bt!mochila` - Ver seus itens',
             inline: false
-        });
+        })
+        .setFooter({ text: '🛒 Galaxy Store • O melhor shopping da galáxia' });
         
         await message.reply({ embeds: [embed] });
     }
