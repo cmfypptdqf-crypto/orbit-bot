@@ -19,7 +19,7 @@ function saveDB(data) {
 
 module.exports = {
     name: 'depositar',
-    aliases: ['dep', 'guardar', 'estacao'],
+    aliases: ['dep', 'guardar'],
     
     async executePrefix(message, args, client) {
         let amount = args[0];
@@ -52,11 +52,13 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
             .setTitle(`🏦 ${getRandomFrase('sucesso')}`)
-            .setDescription(`📡 Você transferiu **${amount.toLocaleString()} Orbs** para a Estação!`)
+            .setDescription(`📡 Você transferiu **${amount.toLocaleString()} Orbs** para o **Orbital Bank**!`)
             .addFields(
                 { name: '💵 Carteira', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
-                { name: '🏦 Banco', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
-            );
+                { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
+            )
+            .setFooter({ text: '✨ Orbital Bank • Fundos garantidos pela Federação' });
+        
         await message.reply({ embeds: [embed] });
     }
 };
