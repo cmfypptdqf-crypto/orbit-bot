@@ -18,12 +18,12 @@ function saveDB(data) {
 
 const nomesItens = {
     '1': '🔭 Telescópio', '2': '🚀 Nave', '3': '💍 Anel', '4': '🛡️ Escudo',
-    '5': '👻 Capa', '6': '🚨 Alarme', '11': '🍀 Amuleto', '12': '📈 Ação', '13': '🎰 Caça'
+    '5': '👻 Capa', '6': '🚨 Alarme', '11': '🍀 Amuleto', '12': '📈 Ação', '13': '📦 Nebula Crate'
 };
 
 module.exports = {
     name: 'marketplace',
-    aliases: ['market'],
+    aliases: ['market', 'voidmarket'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
@@ -33,7 +33,7 @@ module.exports = {
         if (subcmd === 'vender') {
             const itemId = args[1];
             const preco = parseInt(args[2]);
-            if (!itemId || !preco) return message.reply('❌ Use: `bt!market vender <id> <preco>`');
+            if (!itemId || !preco) return message.reply('❌ Use: `bt!voidmarket vender <id> <preco>`');
             
             const userId = message.author.id;
             const inventario = db.usuarios[userId]?.inventario || {};
@@ -42,23 +42,27 @@ module.exports = {
             db.marketItems.push({ id: Date.now(), itemId, seller: userId, preco });
             inventario[itemId]--;
             saveDB(db);
-            await message.reply(`✅ Item ${nomesItens[itemId] || itemId} à venda por ${preco} Orbs!`);
+            await message.reply(`✅ Item ${nomesItens[itemId] || itemId} listado no **Void Market** por ${preco} Orbs!`);
         }
         
         else if (subcmd === 'listar') {
-            if (db.marketItems.length === 0) return message.reply('📭 Nenhum item à venda!');
-            const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🛒 Marketplace');
+            if (db.marketItems.length === 0) return message.reply('📭 Nenhum item no **Void Market**!');
+            const embed = new EmbedBuilder()
+                .setColor(0x2C3E50)
+                .setTitle('🌑 Void Market')
+                .setDescription('Onde as oportunidades se escondem...');
             for (const item of db.marketItems.slice(0, 10)) {
                 const seller = await client.users.fetch(item.seller);
-                embed.addFields({ name: `ID: ${item.id}`, value: `🎁 ${nomesItens[item.itemId]} - ${item.preco} Orbs\n👤 ${seller.username}`, inline: false });
+                embed.addFields({ name: `🎫 ID: ${item.id}`, value: `🎁 ${nomesItens[item.itemId]} - ${item.preco} Orbs\n👤 ${seller.username}`, inline: false });
             }
+            embed.setFooter({ text: '🌑 Void Market • Use bt!voidmarket comprar <id>' });
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'comprar') {
             const marketId = parseInt(args[1]);
             const item = db.marketItems.find(i => i.id === marketId);
-            if (!item) return message.reply('❌ Item não encontrado!');
+            if (!item) return message.reply('❌ Item não encontrado no **Void Market**!');
             
             const userId = message.author.id;
             if ((db.usuarios[userId]?.carteira || 0) < item.preco) return message.reply('❌ Saldo insuficiente!');
@@ -72,11 +76,11 @@ module.exports = {
             const index = db.marketItems.findIndex(i => i.id === marketId);
             db.marketItems.splice(index, 1);
             saveDB(db);
-            await message.reply(`✅ Comprado! Você recebeu ${nomesItens[item.itemId] || item.itemId}!`);
+            await message.reply(`✅ Compra realizada no **Void Market**! Você recebeu ${nomesItens[item.itemId] || item.itemId}!`);
         }
         
         else {
-            await message.reply('🛒 **Marketplace**\n`bt!market vender <id> <preco>`\n`bt!market listar`\n`bt!market comprar <id>`');
+            await message.reply('🌑 **Void Market**\n`bt!voidmarket vender <id> <preco>`\n`bt!voidmarket listar`\n`bt!voidmarket comprar <id>`');
         }
     }
 };
