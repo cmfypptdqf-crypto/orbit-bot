@@ -31,13 +31,13 @@ module.exports = {
         }
         
         const trabalhos = [
-            { nome: '💻 Programador', ganho: [80, 200] },
-            { nome: '👨‍🍳 Chef de cozinha', ganho: [60, 150] },
-            { nome: '🚛 Entregador', ganho: [50, 120] },
-            { nome: '👨‍🏫 Professor', ganho: [70, 180] },
-            { nome: '🎨 Artista', ganho: [40, 300] },
-            { nome: '🔧 Mecânico', ganho: [65, 160] },
-            { nome: '💊 Médico', ganho: [100, 250] }
+            { nome: '🚀 consertando uma nave espacial', ganho: [1000, 3000] },
+            { nome: '🛰️ entregando suplemento no espaço', ganho: [700, 1000] },
+            { nome: '🔨 minerando cristais raros', ganho: [1443, 3000] },
+            { nome: '🪐 explorando um planeta desconhecido', ganho: [4000, 6000] },
+            { nome: '📡 reparando satélites orbitais', ganho: [4000, 5000] },
+            { nome: '👽 ajudando alienígenas perdidos', ganho: [6500, 16000] },
+            { nome: '☄️ coletando fragmentos espaciais', ganho: [100, 250] }
         ];
         
         const trabalho = trabalhos[Math.floor(Math.random() * trabalhos.length)];
@@ -57,7 +57,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
             .setTitle('💼 Trabalho realizado!')
-            .setDescription(`Você trabalhou como **${trabalho.nome}** e ganhou **${ganho.toLocaleString()} orbs**!`)
+            .setDescription(`Você trabalhou **${trabalho.nome}** e ganhou **${ganho.toLocaleString()} orbs**!`)
             .addFields(
                 { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
             )
