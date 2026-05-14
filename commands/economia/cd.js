@@ -12,7 +12,7 @@ module.exports = {
         
         const nomesComandos = {
             'missao': '🎯 Galactic Quest', 'search': '🔍 Exploração', 'pirataria': '☄️ Pirataria',
-            'daily': '📆 Diário', 'weekly': '📅 Semanal', 'beg': '🎭 Esmola', 'sortudo': '🍀 Sorte'
+            'daily': '<:emoji_45:1504081355703586866> Diário', 'weekly': '<:emoji_45:1504081355703586866> Semanal', 'beg': '🎭 Esmola', 'sortudo': '🍀 Sorte'
         };
         
         const disponiveis = [];
@@ -21,14 +21,14 @@ module.exports = {
         for (const cmd of todosCooldowns) {
             const nome = nomesComandos[cmd.comando] || cmd.comando;
             if (cmd.available) {
-                disponiveis.push(`**${nome}** → ✅ Disponível`);
+                disponiveis.push(`**${nome}** → <:emoji_46:1504081377291927632> Disponível`);
             } else {
                 indisponiveis.push(`**${nome}** → ${cmd.formatted}`);
             }
         }
         
         const embed = new EmbedBuilder()
-            .setColor(0x3498DB)
+            .setColor(0x00008B)
             .setTitle('⏰ Tempos de Recarga')
             .setDescription(`📡 ${message.author.username}, aqui está o status:`)
             .setThumbnail(message.author.displayAvatarURL());
@@ -40,7 +40,7 @@ module.exports = {
         }
         
         if (disponiveis.length > 0) {
-            embed.addFields({ name: '✅ Prontos', value: disponiveis.join('\n'), inline: false });
+            embed.addFields({ name: '<:emoji_46:1504081377291927632> Prontos', value: disponiveis.join('\n'), inline: false });
         }
         
         embed.setFooter({ text: `${indisponiveis.length}/${todosCooldowns.length} comandos em recarga` });
