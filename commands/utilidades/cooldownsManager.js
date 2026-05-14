@@ -1,4 +1,3 @@
-// utilidades/cooldownsManager.js
 const cooldowns = new Map();
 
 module.exports = {
@@ -39,6 +38,7 @@ module.exports = {
             'procurar': 600000,
             'pirataria': 1800000,
             'roubar': 1800000,
+            'crime': 1800000,
             'daily': 86400000,
             'diario': 86400000,
             'weekly': 604800000,
