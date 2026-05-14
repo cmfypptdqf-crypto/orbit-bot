@@ -32,11 +32,8 @@ module.exports = {
     
     getCooldownTime(command) {
         const tempos = {
-            'missao': 3600000, 'work': 3600000,
-            'search': 600000, 'pirataria': 1800000, 'roubar': 1800000,
-            'daily': 86400000, 'diario': 86400000,
-            'weekly': 604800000, 'semanal': 604800000,
-            'beg': 300000, 'sortudo': 3600000
+            'missao': 3600000, 'search': 600000, 'pirataria': 1800000,
+            'daily': 86400000, 'weekly': 604800000, 'beg': 300000, 'sortudo': 3600000
         };
         return tempos[command] || 0;
     },
@@ -46,8 +43,8 @@ module.exports = {
         const horas = Math.ceil(ms / 3600000);
         const dias = Math.ceil(ms / 86400000);
         
-        if (command === 'daily' || command === 'diario') return `${horas} horas`;
-        if (command === 'weekly' || command === 'semanal') return `${dias} dias`;
+        if (command === 'daily') return `${horas} horas`;
+        if (command === 'weekly') return `${dias} dias`;
         if (minutos < 60) return `${minutos} minutos`;
         if (horas < 24) return `${horas} horas`;
         return `${dias} dias`;
