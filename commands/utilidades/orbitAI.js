@@ -33,14 +33,6 @@ const orbitPersonality = {
         '✨ Mais uma conquista registrada.'
     ],
     
-    // Frases de cooldown
-    frasesCooldown: [
-        '⏰ Calma, comandante! Aguarde um pouco.',
-        '🔄 Sistemas recarregando. Volte em breve.',
-        '🔋 Energia em recuperação. Tenha paciência.',
-        '🌙 Nem tudo acontece ao mesmo tempo.',
-        '📡 Sinal instável. Tente novamente mais tarde.'
-    ],
     
     // Frases de evento aleatório
     eventos: [
