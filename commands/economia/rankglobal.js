@@ -15,7 +15,7 @@ function getDB() {
 
 module.exports = {
     name: 'rank',
-    aliases: ['liderança', 'top', 'ranking'],
+    aliases: ['liderança', 'top', 'ranking', 'leaderboard'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
@@ -47,17 +47,18 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('🏆 Ranking Galáctico')
-            .setDescription(`Os exploradores mais ricos!\n📊 Total: ${ranking.length} usuários`);
+            .setTitle('🏆 Stellar Leaderboard')
+            .setDescription(`Os maiores exploradores do universo!\n📊 Total: ${ranking.length} exploradores`)
+            .setThumbnail(message.guild.iconURL());
         
         for (let i = 0; i < top10.length; i++) {
             const pos = i + 1;
             let medalha = pos === 1 ? '👑 ' : pos === 2 ? '🥈 ' : pos === 3 ? '🥉 ' : `${pos}. `;
-            let vipIcon = top10[i].vip ? (top10[i].vipTier === 'diamante' ? ' 💎' : ' ⭐') : '';
+            let vipIcon = top10[i].vip ? ' ⭐' : '';
             
             embed.addFields({
                 name: `${medalha}${top10[i].user.username}${vipIcon}`,
-                value: `💰 ${top10[i].total.toLocaleString()} Orbs | 🚀 Nível ${top10[i].nivel}`,
+                value: `💰 ${top10[i].total.toLocaleString()} Orbs | ✨ Stellar XP Nível ${top10[i].nivel}`,
                 inline: false
             });
         }
