@@ -33,7 +33,7 @@ module.exports = {
         const qtdCaçaNiquel = inventario['13'] || 0;
         
         if (qtdCaçaNiquel === 0) {
-            return message.reply('❌ Você não possui um **Caça-Níquel**! Compre um no `bt!mercadogalactico` (ID 13)');
+            return message.reply('❌ Você não possui um **Caça-Níquel**! Compre um na `bt!loja` (ID 13)');
         }
         
         // Símbolos do caça-níquel
