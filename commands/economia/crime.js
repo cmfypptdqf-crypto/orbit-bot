@@ -71,8 +71,9 @@ module.exports = {
                 .setDescription(`📡 Você saqueou **${valorRoubado.toLocaleString()} Orbs** de ${user.username}!`)
                 .addFields(
                     { name: '🎯 Chance', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
-                    { name: '💵 Seu saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
+                    { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                )
+                .setFooter({ text: '☄️ Ataque realizado com sucesso!' });
             await message.reply({ embeds: [embed] });
         } else {
             const perda = Math.min(db.usuarios[userId].carteira || 0, Math.floor(Math.random() * 200) + 50);
@@ -89,7 +90,8 @@ module.exports = {
                 .addFields(
                     { name: '💰 Multa', value: `${perda.toLocaleString()} Orbs`, inline: true },
                     { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
+                )
+                .setFooter({ text: '☄️ Tente novamente em 30 minutos' });
             await message.reply({ embeds: [embed] });
         }
     }
