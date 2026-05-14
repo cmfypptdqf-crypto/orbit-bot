@@ -17,11 +17,11 @@ function saveDB(data) {
 }
 
 const receitas = {
-    'Nave Hiperespacial': { ingredientes: { '1': 2, '2': 1 }, resultado: { id: '14', nome: '🚀 Nave Hiperespacial' }, custo: 5000 },
-    'Cristal Cósmico': { ingredientes: { '3': 3, '11': 1 }, resultado: { id: '15', nome: '💎 Cristal Cósmico' }, custo: 10000 }
+    'Nave Hiperespacial': { ingredientes: { '1': 2, '2': 1 }, resultado: { id: '14', nome: '🚀 Nave Hiperespacial' }, custo: 5000, descricao: 'Uma nave extremamente rápida capaz de viajar entre galáxias.' },
+    'Cristal Cósmico': { ingredientes: { '3': 3, '11': 1 }, resultado: { id: '15', nome: '💎 Cristal Cósmico' }, custo: 10000, descricao: 'Um cristal de energia pura que amplifica seus ganhos.' }
 };
 
-const nomesItens = { '1': '🔭 Telescópio', '2': '🚀 Nave', '3': '💍 Anel', '11': '🍀 Amuleto' };
+const nomesItens = { '1': '🔭 Telescópio', '2': '🚀 Nave Explorer', '3': '💍 Anel Cósmico', '11': '🍀 Amuleto da Sorte' };
 
 module.exports = {
     name: 'craft',
@@ -31,27 +31,32 @@ module.exports = {
         const subcmd = args[0]?.toLowerCase();
         
         if (subcmd === 'receitas') {
-            const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🔧 Receitas');
+            const embed = new EmbedBuilder()
+                .setColor(0xFFD700)
+                .setTitle('🔧 Sistema de Crafting')
+                .setDescription('Fabrique itens poderosos na **Galaxy Store**!');
+            
             for (const [nome, recipe] of Object.entries(receitas)) {
                 const ingredientes = Object.entries(recipe.ingredientes).map(([id, qtd]) => `${nomesItens[id]} x${qtd}`).join(', ');
-                embed.addFields({ name: `✨ ${recipe.resultado.nome}`, value: `📦 ${ingredientes}\n💰 ${recipe.custo} Orbs`, inline: false });
+                embed.addFields({ name: `✨ ${recipe.resultado.nome}`, value: `📦 Ingredientes: ${ingredientes}\n💰 Custo: ${recipe.custo.toLocaleString()} Orbs\n📝 ${recipe.descricao}`, inline: false });
             }
+            embed.setFooter({ text: 'Use bt!craft fazer <nome> para fabricar' });
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'fazer') {
             const nome = args.slice(1).join(' ');
             const recipe = Object.values(receitas).find(r => r.resultado.nome.toLowerCase().includes(nome.toLowerCase()));
-            if (!recipe) return message.reply('❌ Receita não encontrada!');
+            if (!recipe) return message.reply('❌ Receita não encontrada! Use `bt!craft receitas`');
             
             const db = getDB();
             const userId = message.author.id;
             const inventario = db.usuarios[userId]?.inventario || {};
             
             for (const [id, qtd] of Object.entries(recipe.ingredientes)) {
-                if ((inventario[id] || 0) < qtd) return message.reply(`❌ Faltam ${qtd}x de ${nomesItens[id]}`);
+                if ((inventario[id] || 0) < qtd) return message.reply(`❌ Faltam ${qtd}x de ${nomesItens[id]}!`);
             }
-            if ((db.usuarios[userId]?.carteira || 0) < recipe.custo) return message.reply(`❌ Faltam ${recipe.custo} Orbs!`);
+            if ((db.usuarios[userId]?.carteira || 0) < recipe.custo) return message.reply(`❌ Faltam ${recipe.custo.toLocaleString()} Orbs!`);
             
             for (const [id, qtd] of Object.entries(recipe.ingredientes)) {
                 inventario[id] -= qtd;
@@ -63,11 +68,11 @@ module.exports = {
             db.usuarios[userId].inventario = inventario;
             saveDB(db);
             
-            await message.reply(`✅ Você craftou **${recipe.resultado.nome}**!`);
+            await message.reply(`✅ Você craftou **${recipe.resultado.nome}** com sucesso! O item foi adicionado à sua mochila.`);
         }
         
         else {
-            await message.reply('🔧 **Crafting**\n`bt!craft receitas`\n`bt!craft fazer <nome>`');
+            await message.reply('🔧 **Crafting**\n`bt!craft receitas` - Ver todas as receitas\n`bt!craft fazer <nome>` - Fabricar um item');
         }
     }
 };
