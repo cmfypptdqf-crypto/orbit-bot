@@ -1,7 +1,9 @@
+// commands/economia/beg.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../utilidades/cooldownsManager.js');
+const { checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent } = require('../../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -23,19 +25,17 @@ module.exports = {
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
-        const cooldownCheck = cooldownsManager.check(userId, 'beg');
+        const cooldownCheck = checkCooldown(userId, 'beg');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para pedir novamente!`);
+            const fraseCooldown = getRandomFrase('cooldown');
+            return message.reply(`${fraseCooldown}\n⏰ Aguarde mais **${cooldownCheck.formatted}** para pedir novamente!`);
         }
         
         const eventos = [
             { texto: '👽 Um alienígena ficou com pena de você', ganho: [200, 400], cor: 0x9B59B6 },
             { texto: '🚀 Um viajante espacial jogou Orbs para você', ganho: [150, 300], cor: 0x3498DB },
             { texto: '🛸 Uma nave desconhecida dropou suprimentos', ganho: [100, 250], cor: 0x00FF00 },
-            { texto: '💫 Uma estrela cadente deixou Orbs para você', ganho: [180, 350], cor: 0xF1C40F },
-            { texto: '🌙 A Estação Espacial te enviou um auxílio', ganho: [250, 500], cor: 0xE67E22 },
-            { texto: '🧙 O Mestre Cósmico abençoou você', ganho: [300, 600], cor: 0x8E44AD },
-            { texto: '🪐 Saturno alinhou os planetas a seu favor', ganho: [220, 450], cor: 0xFF9800 }
+            { texto: '💫 Uma estrela cadente deixou Orbs para você', ganho: [180, 350], cor: 0xF1C40F }
         ];
         
         const evento = eventos[Math.floor(Math.random() * eventos.length)];
@@ -48,18 +48,38 @@ module.exports = {
         }
         
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
+        
+        // Verificar evento aleatório
+        const eventoCosmico = checkRandomEvent();
+        let eventoResultado = null;
+        
+        if (eventoCosmico) {
+            eventoResultado = await processEvent(eventoCosmico, userId, db, client);
+        }
+        
         saveDB(db);
         
-        cooldownsManager.set(userId, 'beg');
+        setCooldown(userId, 'beg');
+        
+        const fraseSucesso = getRandomFrase('sucesso');
         
         const embed = new EmbedBuilder()
             .setColor(evento.cor)
-            .setTitle('🎭 Esmola Espacial')
+            .setTitle(`🎭 ${fraseSucesso}`)
             .setDescription(evento.texto)
             .addFields(
-                { name: '✨ Você recebeu', value: `**+${ganho} Orbs**`, inline: true },
+                { name: '✨ Você recebeu', value: `**+${ganho.toLocaleString()} Orbs**`, inline: true },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+            )
+            .setFooter({ text: '🌌 Orbit • Próximo pedido em 5 minutos' })
+            .setTimestamp();
+        
+        if (eventoResultado) {
+            embed.addFields(
+                { name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false },
+                { name: '✨ Efeito', value: eventoResultado.efeito || 'Neutro', inline: true }
             );
+        }
         
         await message.reply({ embeds: [embed] });
     }
