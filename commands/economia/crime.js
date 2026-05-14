@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
 const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../../utilidades/orbitAI.js');
+
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
@@ -30,10 +31,8 @@ module.exports = {
         const userId = message.author.id;
         const targetId = user.id;
         
-        // Frase inicial do Orbit
         const fraseInicial = getComandoFrase('pirataria') || getRandomFrase('inicio');
         
-        // Verificar cooldown
         const cooldownCheck = checkCooldown(userId, 'pirataria');
         if (!cooldownCheck.available) {
             const fraseCooldown = getRandomFrase('cooldown');
@@ -55,17 +54,14 @@ module.exports = {
             return message.reply(`❌ ${user.username} está sem Orbs para serem saqueados!`);
         }
         
-        // Chance base + bônus do clã para ataque
         const bonusAtaque = calcularBonusTotal(userId, 'ataque');
         let chanceSucesso = 0.4 * bonusAtaque.bonus;
         chanceSucesso = Math.min(0.7, chanceSucesso);
         
         const sucesso = Math.random() < chanceSucesso;
         
-        // Registrar cooldown
         setCooldown(userId, 'pirataria');
         
-        // Verificar evento aleatório
         const evento = checkRandomEvent();
         let eventoResultado = null;
         
@@ -92,8 +88,7 @@ module.exports = {
                 .setDescription(`${fraseSucesso}\n📡 Você saqueou **${valorRoubado.toLocaleString()} Orbs** da nave de ${user.username}`)
                 .addFields(
                     { name: '🎯 Chance', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
-                    { name: '✨ Bônus aplicado', value: bonusAtaque.texto || 'Nenhum', inline: false }
+                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
                 .setFooter({ text: '🌌 Orbit • Próximo ataque em 30 minutos' })
                 .setTimestamp();
