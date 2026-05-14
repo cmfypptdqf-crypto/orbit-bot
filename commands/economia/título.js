@@ -29,7 +29,7 @@ const titulos = {
 module.exports = {
     name: 'titulo',
     description: 'Sistema de Títulos',
-    aliases: ['title', 'título', 'badge'],
+    aliases: ['title', 'título'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
