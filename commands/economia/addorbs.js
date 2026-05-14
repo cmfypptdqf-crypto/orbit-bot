@@ -48,14 +48,13 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('✅ Orbs Adicionadas!')
+            .setTitle('<a:h_checkazul:1503775331163705614> Orbs Adicionadas!')
             .setDescription(`${user} recebeu **${amount.toLocaleString()} orbs**!`)
             .addFields(
                 { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} moedas`, inline: true },
                 { name: '👮 Adicionado por', value: message.author.tag, inline: true },
                 { name: '📌 Cargo necessário', value: `<@&${CARGO_PERMITIDO_ID}>`, inline: false }
             )
-            .setFooter({ text: '🌍 Economia global' })
             .setTimestamp();
         
         await message.reply({ embeds: [embed] });
