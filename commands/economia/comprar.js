@@ -35,7 +35,7 @@ module.exports = {
     async executePrefix(message, args, client) {
         const itemId = args[0];
         if (!itemId || !itensLoja[itemId]) {
-            return message.reply('❌ ID inválido! Use `!mercadogalactico` para ver os itens.');
+            return message.reply('❌ ID inválido! Use `bt!mercadogalactico` para ver os itens.');
         }
         
         const item = itensLoja[itemId];
