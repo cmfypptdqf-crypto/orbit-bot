@@ -1,6 +1,6 @@
 // commands/evento.js
 const { EmbedBuilder } = require('discord.js');
-const { checkRandomEvent } = require('../utilidades/orbitAI.js');
+const { checkRandomEvent } = require('./utilidades/orbitAI.js');
 
 module.exports = {
     name: 'evento',
