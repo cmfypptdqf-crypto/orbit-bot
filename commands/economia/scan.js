@@ -65,7 +65,7 @@ module.exports = {
                 { name: '💎 Você encontrou', value: `**+${ganho.toLocaleString()} Orbs**`, inline: true },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: 'Use !cooldowns para ver todos os tempos' });
+            .setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
         
         await message.reply({ embeds: [embed] });
     }
