@@ -1,3 +1,4 @@
+// commands/economia/bet.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -16,16 +17,19 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'apostar',
-    aliases: ['bet', 'caraoucoroa'],
+    name: 'bet',
+    aliases: ['apostar', 'caraoucoroa', 'coinflip'],
     
     async executePrefix(message, args, client) {
         const amount = parseInt(args[0]);
-        if (isNaN(amount) || amount <= 0) return message.reply('❌ Aposte um valor válido! Ex: `!apostar 100 cara`');
-        
         const escolha = args[1]?.toLowerCase();
+        
+        if (isNaN(amount) || amount <= 0) {
+            return message.reply('❌ Aposte um valor válido! Ex: `bt!bet 100 cara`');
+        }
+        
         if (!escolha || (escolha !== 'cara' && escolha !== 'coroa')) {
-            return message.reply('❌ Escolha "cara" ou "coroa"! Ex: `bt!apostar 100 cara`');
+            return message.reply('❌ Escolha "cara" ou "coroa"! Ex: `bt!bet 100 cara`');
         }
         
         const userId = message.author.id;
@@ -38,7 +42,7 @@ module.exports = {
         const carteira = db.usuarios[userId].carteira || 0;
         
         if (carteira < amount) {
-            return message.reply(`❌ Você só tem ${carteira.toLocaleString()} moedas no baú!`);
+            return message.reply(`❌ Você só tem ${carteira.toLocaleString()} Orbs na carteira!`);
         }
         
         const resultado = Math.random() < 0.5 ? 'cara' : 'coroa';
@@ -49,9 +53,10 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
                 .setTitle('🎉 Você ganhou!')
-                .setDescription(`Deu **${resultado}**! Você ganhou **${amount.toLocaleString()} orbs**!`)
+                .setDescription(`🪙 Deu **${resultado}**!`)
                 .addFields(
-                    { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
+                    { name: '💰 Ganho', value: `+${amount.toLocaleString()} Orbs`, inline: true },
+                    { name: '💵 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 );
             await message.reply({ embeds: [embed] });
         } else {
@@ -59,9 +64,10 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle('😞 Você perdeu!')
-                .setDescription(`Deu **${resultado}**... Você perdeu **${amount.toLocaleString()} orbs**.`)
+                .setDescription(`🪙 Deu **${resultado}**...`)
                 .addFields(
-                    { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
+                    { name: '💰 Perda', value: `-${amount.toLocaleString()} Orbs`, inline: true },
+                    { name: '💵 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 );
             await message.reply({ embeds: [embed] });
         }
