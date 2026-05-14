@@ -23,7 +23,7 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `!pirataria @usuario`');
+        if (!user) return message.reply('❌ Use: `bt!crime @usuario`');
         
         if (user.id === message.author.id) {
             return message.reply('❌ Você não pode atacar sua própria nave!');
