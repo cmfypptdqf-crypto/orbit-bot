@@ -1,8 +1,7 @@
-// commands/economia/beg.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../../utilidades/cooldownsManager.js');
+
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
@@ -22,12 +21,6 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
-        
-        // VERIFICAR COOLDOWN
-        const cooldownCheck = cooldownsManager.check(userId, 'beg');
-        if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para pedir novamente!`);
-        }
         
         const eventos = [
             { texto: '👽 Um alienígena ficou com pena de você', ganho: [200, 400], cor: 0x9B59B6 },
@@ -51,9 +44,6 @@ module.exports = {
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
         saveDB(db);
         
-        // REGISTRAR COOLDOWN
-        cooldownsManager.set(userId, 'beg');
-        
         const embed = new EmbedBuilder()
             .setColor(evento.cor)
             .setTitle('🎭 Esmola Espacial')
@@ -61,8 +51,7 @@ module.exports = {
             .addFields(
                 { name: '✨ Você recebeu', value: `**+${ganho} Orbs**`, inline: true },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-            )
-            .setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
+            );
         
         await message.reply({ embeds: [embed] });
     }
