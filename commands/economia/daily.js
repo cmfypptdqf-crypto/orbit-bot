@@ -2,8 +2,8 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
-const { getRandomFrase, checkRandomEvent, processEvent } = require('../../utilidades/orbitAI.js');
+const { checkCooldown, setCooldown } = require('../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent } = require('../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
