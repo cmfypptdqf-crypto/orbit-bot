@@ -33,18 +33,15 @@ module.exports = {
             
             const db = getDB();
             
-            // Inicializar estruturas se não existirem
             if (!db.usuarios[message.author.id]) {
                 db.usuarios[message.author.id] = { carteira: 0, banco: 0, inventario: {} };
             }
             if (!db.clans) db.clans = {};
             
-            // Verificar se o usuário já está em um clã
             if (db.usuarios[message.author.id].clan) {
-                return message.reply('❌ Você já está em um clã! Saia primeiro usando `!clan sair`');
+                return message.reply('❌ Você já está em um clã! Saia primeiro usando `bt!clan sair`');
             }
             
-            // Verificar se já existe clã com esse nome
             const clanExistente = Object.values(db.clans).find(c => c.nome.toLowerCase() === nome.toLowerCase());
             if (clanExistente) return message.reply('❌ Já existe um clã com este nome!');
             
@@ -83,15 +80,27 @@ module.exports = {
         // Comando: info
         else if (subcmd === 'info') {
             const db = getDB();
-            let clanId = args[1] ? args[1] : db.usuarios[message.author.id]?.clan;
+            let clanId = null;
             
-            // Se não encontrou clã do usuário, tenta buscar pelo nome
-            if (!clanId && args[1]) {
-                const clanPorNome = Object.values(db.clans || {}).find(c => c.nome.toLowerCase() === args[1].toLowerCase());
-                if (clanPorNome) clanId = clanPorNome.id;
+            if (db.usuarios[message.author.id]?.clan) {
+                clanId = db.usuarios[message.author.id].clan;
             }
             
-            if (!clanId) return message.reply('❌ Você não está em nenhum clã! Use `bt!clan criar <nome>` para criar um.');
+            if (args[1]) {
+                if (db.clans[args[1]]) {
+                    clanId = args[1];
+                } else {
+                    const nomeProcurado = args.slice(1).join(' ').toLowerCase();
+                    const clanPorNome = Object.values(db.clans || {}).find(
+                        c => c.nome.toLowerCase() === nomeProcurado
+                    );
+                    if (clanPorNome) clanId = clanPorNome.id;
+                }
+            }
+            
+            if (!clanId) {
+                return message.reply(`❌ Clã não encontrado! Use bt!clan criar <nome> para criar um clã ou bt!clan info <nome> para ver outro clã.`);
+            }
             
             const clan = db.clans[clanId];
             if (!clan) return message.reply('❌ Clã não encontrado!');
@@ -143,7 +152,6 @@ module.exports = {
             
             if (db.usuarios[user.id]?.clan) return message.reply('❌ Este usuário já está em um clã!');
             
-            // Salvar convite (simplificado - você pode melhorar com sistema de convites)
             if (!db.convites) db.convites = {};
             db.convites[user.id] = { clanId: clanId, expires: Date.now() + 300000 };
             saveDB(db);
@@ -169,6 +177,10 @@ module.exports = {
             
             if (db.usuarios[userId]?.clan) return message.reply('❌ Você já está em um clã!');
             
+            if (!db.usuarios[userId]) {
+                db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
+            }
+            
             clan.membros.push(userId);
             db.usuarios[userId].clan = convite.clanId;
             delete db.convites[userId];
@@ -189,7 +201,7 @@ module.exports = {
             if (!clan) return message.reply('❌ Clã não encontrado!');
             
             if (clan.dono === userId) {
-                return message.reply('❌ Você é o líder! Para sair, primeiro transfira a liderança com `bt!clan transferir @usuario` ou delete o clã com `!clan deletar`');
+                return message.reply('❌ Você é o líder! Para sair, primeiro transfira a liderança com `bt!clan transferir @usuario` ou delete o clã com `bt!clan deletar`');
             }
             
             clan.membros = clan.membros.filter(id => id !== userId);
@@ -210,7 +222,6 @@ module.exports = {
             const clan = db.clans[clanId];
             if (clan.dono !== userId) return message.reply('❌ Apenas o líder pode deletar o clã!');
             
-            // Remover clan de todos os membros
             for (const membroId of clan.membros) {
                 if (db.usuarios[membroId]) {
                     delete db.usuarios[membroId].clan;
@@ -248,13 +259,13 @@ module.exports = {
         // Comando: top
         else if (subcmd === 'top') {
             const db = getDB();
-            if (!db.clans) return message.reply('📊 Nenhum clã foi criado ainda!');
+            if (!db.clans || Object.keys(db.clans).length === 0) {
+                return message.reply('📊 Nenhum clã foi criado ainda! Seja o primeiro a criar um com `bt!clan criar <nome>`');
+            }
             
             const ranking = Object.values(db.clans)
                 .sort((a, b) => b.level - a.level || b.membros.length - a.membros.length)
                 .slice(0, 10);
-            
-            if (ranking.length === 0) return message.reply('📊 Nenhum clã encontrado!');
             
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
@@ -267,10 +278,11 @@ module.exports = {
                 if (i === 0) medalha = '👑 ';
                 else if (i === 1) medalha = '🥈 ';
                 else if (i === 2) medalha = '🥉 ';
+                else medalha = `${i + 1}. `;
                 
                 embed.addFields({
-                    name: `${medalha}#${i + 1} - ${clan.nome}`,
-                    value: `📊 Nível ${clan.level} | 👥 ${clan.membros.length} membros`,
+                    name: `${medalha}${clan.nome}`,
+                    value: `📊 Nível ${clan.level} | 👥 ${clan.membros.length} membros | 👑 <@${clan.dono}>`,
                     inline: false
                 });
             }
@@ -286,7 +298,7 @@ module.exports = {
                 .setDescription('Comandos disponíveis:')
                 .addFields(
                     { name: '📋 `bt!clan criar <nome>`', value: 'Cria um novo clã (custa 50.000 Orbs)', inline: false },
-                    { name: 'ℹ️ `bt!clan info [@clã]`', value: 'Mostra informações do clã', inline: false },
+                    { name: 'ℹ️ `bt!clan info [nome/id]`', value: 'Mostra informações do clã', inline: false },
                     { name: '👥 `bt!clan convidar @user`', value: 'Convida um usuário para o clã (apenas líder)', inline: false },
                     { name: '✅ `bt!clan entrar`', value: 'Aceita um convite para um clã', inline: false },
                     { name: '🚪 `bt!clan sair`', value: 'Sai do clã atual', inline: false },
@@ -294,7 +306,7 @@ module.exports = {
                     { name: '💀 `bt!clan deletar`', value: 'Deleta o clã (apenas líder)', inline: false },
                     { name: '🏆 `bt!clan top`', value: 'Mostra o ranking de clãs', inline: false }
                 )
-                .setFooter({ text: 'Use bt! <comando> para mais informações' });
+                .setFooter({ text: 'Use bt!clan <comando> para mais informações' });
             
             await message.reply({ embeds: [embed] });
         }
