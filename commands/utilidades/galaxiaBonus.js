@@ -37,7 +37,7 @@ function getBonusDoUsuario(userId, tipo) {
             }
         }
     }
-    return { bonus, origem, texto: origem ? ` (+${Math.round((bonus - 1) * 100)}% do clã ${origem})` : '' };
+    return { bonus, origem, texto: origem ? ` (+${Math.round((bonus - 1) * 100)}% da Cosmic Dominion)` : '' };
 }
 
 function getVIPBonus(userId) {
@@ -56,7 +56,7 @@ function calcularBonusTotal(userId, tipo) {
         bonus: bonusTotal,
         vipBonus: vipBonus,
         clanBonus: clanBonus.bonus,
-        texto: `VIP: ${vipBonus}x | Clã: ${clanBonus.texto || 'sem bônus'} | Total: ${bonusTotal.toFixed(2)}x`
+        texto: `Orbit Prime: ${vipBonus}x | Cosmic Dominion: ${clanBonus.texto || 'sem bônus'} | Total: ${bonusTotal.toFixed(2)}x`
     };
 }
 
