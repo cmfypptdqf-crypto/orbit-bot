@@ -1,17 +1,17 @@
 // commands/utilidades/levelSystem.js
-function calcularNivel(totalOrbs) {
-    if (totalOrbs <= 0) return 1;
-    const nivel = Math.floor(Math.log10(totalOrbs / 100 + 1) * 15);
-    return Math.max(1, Math.min(100, nivel));
+function calcularNivel(xpTotal) {
+    if (xpTotal <= 0) return 1;
+    const nivel = Math.floor(Math.sqrt(xpTotal / 100)) + 1;
+    return Math.min(100, Math.max(1, nivel));
 }
 
 function xpParaProximoNivel(nivelAtual) {
-    return nivelAtual * 1000;
+    return 100 * Math.pow(nivelAtual, 2);
 }
 
-function xpAtual(totalOrbs, nivelAtual) {
-    const xpNecessario = xpParaProximoNivel(nivelAtual);
-    return totalOrbs % xpNecessario;
+function xpAtualNoNivel(xpTotal, nivelAtual) {
+    const xpNecessarioAnterior = nivelAtual > 1 ? 100 * Math.pow(nivelAtual - 1, 2) : 0;
+    return xpTotal - xpNecessarioAnterior;
 }
 
 function getTituloPorNivel(nivel) {
@@ -24,4 +24,4 @@ function getTituloPorNivel(nivel) {
     return '🌱 Aprendiz Cósmico';
 }
 
-module.exports = { calcularNivel, xpParaProximoNivel, xpAtual, getTituloPorNivel };
+module.exports = { calcularNivel, xpParaProximoNivel, xpAtualNoNivel, getTituloPorNivel };
