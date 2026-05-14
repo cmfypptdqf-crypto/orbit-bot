@@ -2,8 +2,9 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
-const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../../utilidades/orbitAI.js');
+const { checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent } = require('../../utilidades/orbitAI.js');
+
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
@@ -48,7 +49,6 @@ module.exports = {
         
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
         
-        // Verificar evento aleatório
         const eventoCosmico = checkRandomEvent();
         let eventoResultado = null;
         
@@ -57,7 +57,6 @@ module.exports = {
         }
         
         saveDB(db);
-        
         setCooldown(userId, 'beg');
         
         const fraseSucesso = getRandomFrase('sucesso');
