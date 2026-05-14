@@ -1,10 +1,9 @@
-// utils/cooldownsManager.js
+// utilidades/cooldownsManager.js
 const cooldowns = new Map();
 
 module.exports = {
     cooldowns,
     
-    // Verificar se está em cooldown
     check(userId, command) {
         const key = `${command}_${userId}`;
         const lastTime = cooldowns.get(key);
@@ -25,35 +24,32 @@ module.exports = {
         };
     },
     
-    // Registrar uso do comando
     set(userId, command) {
         const key = `${command}_${userId}`;
         cooldowns.set(key, Date.now());
     },
     
-    // Tempo de cooldown de cada comando (em ms)
     getCooldownTime(command) {
         const tempos = {
-            'missao': 3600000,      // 1 hora
-            'work': 3600000,        // 1 hora
-            'search': 600000,       // 10 minutos
-            'procurar': 600000,     // 10 minutos
-            'pirataria': 1800000,   // 30 minutos
-            'roubar': 1800000,      // 30 minutos
-            'daily': 86400000,      // 24 horas
-            'diario': 86400000,     // 24 horas
-            'weekly': 604800000,    // 7 dias
-            'semanal': 604800000,   // 7 dias
-            'beg': 300000,          // 5 minutos
-            'pedir': 300000,        // 5 minutos
-            'sortudo': 3600000,     // 1 hora
-            'luck': 3600000,        // 1 hora
-            'sorte': 3600000        // 1 hora
+            'missao': 3600000,
+            'work': 3600000,
+            'search': 600000,
+            'procurar': 600000,
+            'pirataria': 1800000,
+            'roubar': 1800000,
+            'daily': 86400000,
+            'diario': 86400000,
+            'weekly': 604800000,
+            'semanal': 604800000,
+            'beg': 300000,
+            'pedir': 300000,
+            'sortudo': 3600000,
+            'luck': 3600000,
+            'sorte': 3600000
         };
         return tempos[command] || 0;
     },
     
-    // Formatar tempo restante
     formatTime(ms, command) {
         const commandConfig = {
             'missao': { divisor: 60000, unidade: 'minuto' },
@@ -80,7 +76,6 @@ module.exports = {
         return `${valor} ${unidade}`;
     },
     
-    // Obter todos os cooldowns de um usuário
     getAll(userId) {
         const comandos = ['missao', 'search', 'pirataria', 'daily', 'weekly', 'beg', 'sortudo'];
         const resultados = [];
