@@ -1,6 +1,6 @@
 // commands/economia/cooldowns.js
 const { EmbedBuilder } = require('discord.js');
-const cooldownsManager = require('../../utils/cooldownsManager.js');
+const cooldownsManager = require('../../utilidades/cooldownsManager.js');
 
 module.exports = {
     name: 'cooldowns',
