@@ -35,7 +35,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
                 .setTitle('🏷️ Títulos Disponíveis')
-                .setDescription('Use `!titulo comprar <id>` para adquirir um título!');
+                .setDescription('Use `bt!titulo comprar <id>` para adquirir um título!');
             
             for (const [id, titulo] of Object.entries(titulos)) {
                 embed.addFields({
@@ -45,7 +45,7 @@ module.exports = {
                 });
             }
             
-            embed.setFooter({ text: 'Você também pode usar !titulo meus para ver seus títulos' });
+            embed.setFooter({ text: 'Você também pode usar bt!titulo meus para ver seus títulos' });
             
             return await message.reply({ embeds: [embed] });
         }
@@ -69,7 +69,7 @@ module.exports = {
                 .setThumbnail(message.author.displayAvatarURL());
             
             if (meusTitulos.length === 0) {
-                embed.setDescription('Você ainda não possui nenhum título! Use `!titulo listar` para ver os disponíveis.');
+                embed.setDescription('Você ainda não possui nenhum título! Use `bt!titulo listar` para ver os disponíveis.');
             } else {
                 const listaTitulos = meusTitulos.map(id => {
                     const titulo = titulos[id];
@@ -90,7 +90,7 @@ module.exports = {
         // Comando: comprar
         if (subcmd === 'comprar') {
             const id = args[1];
-            if (!id || !titulos[id]) return message.reply('❌ ID inválido! Use `!titulo listar`');
+            if (!id || !titulos[id]) return message.reply('❌ ID inválido! Use `bt!titulo listar`');
             
             const titulo = titulos[id];
             const db = getDB();
@@ -128,7 +128,7 @@ module.exports = {
                     { name: '💰 Custo', value: `${titulo.preco.toLocaleString()} Orbs`, inline: true },
                     { name: '💵 Saldo restante', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
-                .setFooter({ text: 'Use !titulo equipar ' + id + ' para equipá-lo' });
+                .setFooter({ text: 'Use bt!titulo equipar ' + id + ' para equipá-lo' });
             
             await message.reply({ embeds: [embed] });
         }
@@ -144,7 +144,7 @@ module.exports = {
             }
             
             if (!db.usuarios[userId]?.titulos?.includes(id)) {
-                return message.reply('❌ Você não possui este título! Use `!titulo comprar` primeiro.');
+                return message.reply('❌ Você não possui este título! Use `bt!titulo comprar` primeiro.');
             }
             
             db.usuarios[userId].tituloAtivo = id;
@@ -184,11 +184,11 @@ module.exports = {
                 .setTitle('🏷️ Sistema de Títulos')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
-                    { name: '📋 `!titulo listar`', value: 'Mostra todos os títulos disponíveis para compra', inline: false },
-                    { name: '👤 `!titulo meus`', value: 'Mostra seus títulos adquiridos', inline: false },
-                    { name: '💰 `!titulo comprar <id>`', value: 'Compra um título (ex: `!titulo comprar 1`)', inline: false },
-                    { name: '⚙️ `!titulo equipar <id>`', value: 'Equipa um título que você possui', inline: false },
-                    { name: '❌ `!titulo remover`', value: 'Remove o título atualmente equipado', inline: false }
+                    { name: '📋 `bt!titulo listar`', value: 'Mostra todos os títulos disponíveis para compra', inline: false },
+                    { name: '👤 `bt!titulo meus`', value: 'Mostra seus títulos adquiridos', inline: false },
+                    { name: '💰 `bt!titulo comprar <id>`', value: 'Compra um título (ex: `!titulo comprar 1`)', inline: false },
+                    { name: '⚙️ `bt!titulo equipar <id>`', value: 'Equipa um título que você possui', inline: false },
+                    { name: '❌ `bt!titulo remover`', value: 'Remove o título atualmente equipado', inline: false }
                 )
                 .setFooter({ text: 'Títulos aparecem no seu perfil!' });
             
