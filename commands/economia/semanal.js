@@ -54,9 +54,10 @@ module.exports = {
             .addFields(
                 { name: '💰 Bônus', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
                 { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
-                { name: '⭐ XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true },
-                { name: '🏦 Banco', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
-            );
+                { name: '⭐ Stellar XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true },
+                { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
+            )
+            .setFooter({ text: '📅 Volte semana que vem para mais Stellar XP!' });
         
         await message.reply({ embeds: [embed] });
     }
