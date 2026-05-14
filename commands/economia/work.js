@@ -17,8 +17,8 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'trabalhar',
-    aliases: ['work', 'job'],
+    name: 'missao',
+    aliases: ['trabalhar', 'work', 'job', 'missao'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
@@ -27,21 +27,20 @@ module.exports = {
         
         if (lastWork && Date.now() - lastWork < 3600000) {
             const remaining = Math.ceil((3600000 - (Date.now() - lastWork)) / 60000);
-            return message.reply(`⏰ Você precisa esperar **${remaining} minutos** para trabalhar novamente!`);
+            return message.reply(`⏰ Sua nave ainda está em manutenção! Volte em **${remaining} minutos** para uma nova missão.`);
         }
         
-        const trabalhos = [
-            { nome: '🚀 consertando uma nave espacial', ganho: [1000, 3000] },
-            { nome: '🛰️ entregando suplemento no espaço', ganho: [700, 1000] },
-            { nome: '🔨 minerando cristais raros', ganho: [1443, 3000] },
-            { nome: '🪐 explorando um planeta desconhecido', ganho: [4000, 6000] },
-            { nome: '📡 reparando satélites orbitais', ganho: [4000, 5000] },
-            { nome: '👽 ajudando alienígenas perdidos', ganho: [6500, 16000] },
-            { nome: '☄️ coletando fragmentos espaciais', ganho: [100, 250] }
+        const missoes = [
+            { nome: '🚀 Explorar Andrômeda', ganho: [80, 200] },
+            { nome: '🛸 Resgatar Alienígenas', ganho: [60, 150] },
+            { nome: '💎 Minerar Cristais Cósmicos', ganho: [50, 120] },
+            { nome: '🔭 Mapear Nebulosas', ganho: [70, 180] },
+            { nome: '⚔️ Derrotar Invasores', ganho: [100, 250] },
+            { nome: '📡 Consertar Satélite', ganho: [65, 160] }
         ];
         
-        const trabalho = trabalhos[Math.floor(Math.random() * trabalhos.length)];
-        const ganho = Math.floor(Math.random() * (trabalho.ganho[1] - trabalho.ganho[0] + 1) + trabalho.ganho[0]);
+        const missao = missoes[Math.floor(Math.random() * missoes.length)];
+        const ganho = Math.floor(Math.random() * (missao.ganho[1] - missao.ganho[0] + 1) + missao.ganho[0]);
         
         const db = getDB();
         
@@ -55,13 +54,13 @@ module.exports = {
         cooldowns.set(cooldownKey, Date.now());
         
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle('💼 Trabalho realizado!')
-            .setDescription(`Você trabalhou **${trabalho.nome}** e ganhou **${ganho.toLocaleString()} orbs**!`)
+            .setColor(0x00FF00)
+            .setTitle('🚀 Missão Completa!')
+            .setDescription(`Você completou a missão: **${missao.nome}** e ganhou **${ganho} Orbs**!`)
             .addFields(
-                { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
+                { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira} Orbs`, inline: true }
             )
-            .setFooter({ text: 'Volte daqui 1 hora para trabalhar novamente' });
+            .setFooter({ text: 'Próxima missão disponível em 1 hora' });
         
         await message.reply({ embeds: [embed] });
     }
