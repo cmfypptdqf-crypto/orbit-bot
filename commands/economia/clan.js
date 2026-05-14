@@ -19,7 +19,7 @@ function saveDB(data) {
 
 module.exports = {
     name: 'clan',
-    aliases: ['guild', 'equipe'],
+    aliases: ['guild', 'equipe', 'starfed'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
@@ -33,13 +33,13 @@ module.exports = {
         
         if (subcmd === 'criar') {
             const nome = args.slice(1).join(' ');
-            if (!nome) return message.reply('❌ Use: `bt!clan criar <nome>`');
+            if (!nome) return message.reply('❌ Use: `bt!starfed criar <nome>`');
             if (nome.length > 20) return message.reply('❌ Nome muito longo!');
-            if (db.usuarios[userId].clan) return message.reply('❌ Você já está em um clã!');
+            if (db.usuarios[userId].clan) return message.reply('❌ Você já está em uma Star Federation!');
             
             const preco = 50000;
             if ((db.usuarios[userId].carteira || 0) < preco) {
-                return message.reply(`❌ Criar clã custa ${preco.toLocaleString()} Orbs!`);
+                return message.reply(`❌ Criar uma Star Federation custa ${preco.toLocaleString()} Orbs!`);
             }
             
             const clanId = Date.now().toString();
@@ -51,7 +51,7 @@ module.exports = {
             db.usuarios[userId].clan = clanId;
             saveDB(db);
             
-            await message.reply(`✅ Clã **${nome}** criado com sucesso!`);
+            await message.reply(`✅ **Star Federation: ${nome}** criada com sucesso!`);
         }
         
         else if (subcmd === 'info') {
@@ -60,7 +60,7 @@ module.exports = {
                 const clanPorNome = Object.values(db.clans).find(c => c.nome.toLowerCase() === args.slice(1).join(' ').toLowerCase());
                 if (clanPorNome) clanId = clanPorNome.id;
             }
-            if (!clanId) return message.reply('❌ Você não está em nenhum clã!');
+            if (!clanId) return message.reply('❌ Você não está em nenhuma Star Federation!');
             
             const clan = db.clans[clanId];
             const membrosLista = [];
@@ -72,7 +72,7 @@ module.exports = {
             }
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700).setTitle(`🚀 Clã: ${clan.nome}`)
+                .setColor(0xFFD700).setTitle(`🚀 Star Federation: ${clan.nome}`)
                 .addFields(
                     { name: '👑 Líder', value: `<@${clan.dono}>`, inline: true },
                     { name: '📊 Nível', value: `${clan.level}`, inline: true },
@@ -80,27 +80,28 @@ module.exports = {
                     { name: '⚔️ Poder', value: `${recalcularPoderClan(clanId, db).toLocaleString()}`, inline: true },
                     { name: '💰 Recursos', value: `${(clan.recursos || 0).toLocaleString()} Orbs`, inline: true },
                     { name: '📋 Membros', value: membrosLista.join('\n'), inline: false }
-                );
+                )
+                .setFooter({ text: '🚀 Star Federation • União entre exploradores' });
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'convidar') {
             const user = message.mentions.users.first();
-            if (!user) return message.reply('❌ Use: `bt!clan convidar @usuario`');
+            if (!user) return message.reply('❌ Use: `bt!starfed convidar @usuario`');
             
             const clanId = db.usuarios[userId]?.clan;
-            if (!clanId) return message.reply('❌ Você não está em um clã!');
+            if (!clanId) return message.reply('❌ Você não está em uma Star Federation!');
             
             const clan = db.clans[clanId];
             if (clan.dono !== userId) return message.reply('❌ Apenas o líder pode convidar!');
-            if (clan.membros.length >= 50) return message.reply('❌ Clã lotado!');
-            if (db.usuarios[user.id]?.clan) return message.reply('❌ Usuário já está em um clã!');
+            if (clan.membros.length >= 50) return message.reply('❌ Star Federation lotada!');
+            if (db.usuarios[user.id]?.clan) return message.reply('❌ Usuário já está em uma Star Federation!');
             
             if (!db.convites) db.convites = {};
             db.convites[user.id] = { clanId: clanId, expires: Date.now() + 300000 };
             saveDB(db);
             
-            await message.reply(`✅ Convite enviado para ${user}! Use \`bt!clan entrar\` para aceitar.`);
+            await message.reply(`✅ Convite enviado para ${user}! Use \`bt!starfed entrar\` para aceitar.`);
         }
         
         else if (subcmd === 'entrar') {
@@ -113,7 +114,7 @@ module.exports = {
             }
             
             const clan = db.clans[convite.clanId];
-            if (!clan) return message.reply('❌ Clã não encontrado!');
+            if (!clan) return message.reply('❌ Star Federation não encontrada!');
             
             clan.membros.push(userId);
             db.usuarios[userId].clan = convite.clanId;
@@ -121,12 +122,12 @@ module.exports = {
             recalcularPoderClan(convite.clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você entrou no clã **${clan.nome}**!`);
+            await message.reply(`✅ Você entrou na **Star Federation: ${clan.nome}**!`);
         }
         
         else if (subcmd === 'sair') {
             const clanId = db.usuarios[userId]?.clan;
-            if (!clanId) return message.reply('❌ Você não está em um clã!');
+            if (!clanId) return message.reply('❌ Você não está em uma Star Federation!');
             
             const clan = db.clans[clanId];
             if (clan.dono === userId) {
@@ -138,19 +139,19 @@ module.exports = {
             recalcularPoderClan(clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você saiu do clã **${clan.nome}**!`);
+            await message.reply(`✅ Você saiu da **Star Federation: ${clan.nome}**!`);
         }
         
         else if (subcmd === 'transferir') {
             const user = message.mentions.users.first();
-            if (!user) return message.reply('❌ Use: `bt!clan transferir @usuario`');
+            if (!user) return message.reply('❌ Use: `bt!starfed transferir @usuario`');
             
             const clanId = db.usuarios[userId]?.clan;
-            if (!clanId) return message.reply('❌ Você não está em um clã!');
+            if (!clanId) return message.reply('❌ Você não está em uma Star Federation!');
             
             const clan = db.clans[clanId];
             if (clan.dono !== userId) return message.reply('❌ Apenas o líder pode transferir!');
-            if (!clan.membros.includes(user.id)) return message.reply('❌ Usuário não está no clã!');
+            if (!clan.membros.includes(user.id)) return message.reply('❌ Usuário não está na Star Federation!');
             
             clan.dono = user.id;
             recalcularPoderClan(clanId, db);
@@ -161,10 +162,10 @@ module.exports = {
         
         else if (subcmd === 'deletar') {
             const clanId = db.usuarios[userId]?.clan;
-            if (!clanId) return message.reply('❌ Você não está em um clã!');
+            if (!clanId) return message.reply('❌ Você não está em uma Star Federation!');
             
             const clan = db.clans[clanId];
-            if (clan.dono !== userId) return message.reply('❌ Apenas o líder pode deletar o clã!');
+            if (clan.dono !== userId) return message.reply('❌ Apenas o líder pode deletar a Star Federation!');
             
             for (const membroId of clan.membros) {
                 if (db.usuarios[membroId]) delete db.usuarios[membroId].clan;
@@ -172,15 +173,15 @@ module.exports = {
             delete db.clans[clanId];
             saveDB(db);
             
-            await message.reply(`✅ Clã **${clan.nome}** foi deletado!`);
+            await message.reply(`✅ **Star Federation: ${clan.nome}** foi deletada!`);
         }
         
         else if (subcmd === 'doar') {
             const quantia = parseInt(args[1]);
-            if (!quantia || quantia <= 0) return message.reply('❌ Use: `bt!clan doar <quantia>`');
+            if (!quantia || quantia <= 0) return message.reply('❌ Use: `bt!starfed doar <quantia>`');
             
             const clanId = db.usuarios[userId]?.clan;
-            if (!clanId) return message.reply('❌ Você não está em um clã!');
+            if (!clanId) return message.reply('❌ Você não está em uma Star Federation!');
             if ((db.usuarios[userId].carteira || 0) < quantia) {
                 return message.reply(`❌ Você não tem ${quantia.toLocaleString()} Orbs!`);
             }
@@ -201,15 +202,15 @@ module.exports = {
             recalcularPoderClan(clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você doou ${quantia.toLocaleString()} Orbs para o clã!`);
+            await message.reply(`✅ Você doou ${quantia.toLocaleString()} Orbs para a **Star Federation**!`);
         }
         
         else if (subcmd === 'ranking') {
             const ranking = Object.values(db.clans).sort((a, b) => b.level - a.level).slice(0, 10);
-            if (ranking.length === 0) return message.reply('📊 Nenhum clã foi criado ainda!');
+            if (ranking.length === 0) return message.reply('📊 Nenhuma Star Federation foi criada ainda!');
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700).setTitle('🏆 Ranking de Clãs');
+                .setColor(0xFFD700).setTitle('🏆 Ranking Star Federation');
             
             for (let i = 0; i < ranking.length; i++) {
                 const clan = ranking[i];
@@ -225,19 +226,20 @@ module.exports = {
         else {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle('🚀 Sistema de Clãs')
+                .setTitle('🚀 Star Federation')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
-                    { name: '📋 `bt!clan criar <nome>`', value: 'Cria um clã (50.000 Orbs)', inline: false },
-                    { name: 'ℹ️ `bt!clan info`', value: 'Info do clã', inline: false },
-                    { name: '👥 `bt!clan convidar @user`', value: 'Convidar (líder)', inline: false },
-                    { name: '✅ `bt!clan entrar`', value: 'Aceitar convite', inline: false },
-                    { name: '🚪 `bt!clan sair`', value: 'Sair do clã', inline: false },
-                    { name: '👑 `bt!clan transferir @user`', value: 'Transferir liderança', inline: false },
-                    { name: '💀 `bt!clan deletar`', value: 'Deletar clã', inline: false },
-                    { name: '🎁 `bt!clan doar <valor>`', value: 'Doar Orbs', inline: false },
-                    { name: '🏆 `bt!clan ranking`', value: 'Ranking', inline: false }
-                );
+                    { name: '📋 `bt!starfed criar <nome>`', value: 'Cria uma Star Federation (50.000 Orbs)', inline: false },
+                    { name: 'ℹ️ `bt!starfed info`', value: 'Info da Star Federation', inline: false },
+                    { name: '👥 `bt!starfed convidar @user`', value: 'Convidar (líder)', inline: false },
+                    { name: '✅ `bt!starfed entrar`', value: 'Aceitar convite', inline: false },
+                    { name: '🚪 `bt!starfed sair`', value: 'Sair da Star Federation', inline: false },
+                    { name: '👑 `bt!starfed transferir @user`', value: 'Transferir liderança', inline: false },
+                    { name: '💀 `bt!starfed deletar`', value: 'Deletar Star Federation', inline: false },
+                    { name: '🎁 `bt!starfed doar <valor>`', value: 'Doar Orbs', inline: false },
+                    { name: '🏆 `bt!starfed ranking`', value: 'Ranking', inline: false }
+                )
+                .setFooter({ text: '🚀 Star Federation • União entre exploradores' });
             await message.reply({ embeds: [embed] });
         }
     }
