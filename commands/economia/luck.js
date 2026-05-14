@@ -2,7 +2,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../../utils/cooldownsManager.js');
+const cooldownsManager = require('../../utilidades/cooldownsManager.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
