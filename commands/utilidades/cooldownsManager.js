@@ -10,17 +10,19 @@ module.exports = {
         if (!lastTime) return { available: true, remaining: 0 };
         
         const elapsed = Date.now() - lastTime;
-        const cooldownTime = this.getCooldownTime(command);
+        let cooldownTime = this.getCooldownTime(command);
         
         if (elapsed >= cooldownTime) {
             cooldowns.delete(key);
             return { available: true, remaining: 0 };
         }
         
+        const remaining = cooldownTime - elapsed;
+        
         return { 
             available: false, 
-            remaining: cooldownTime - elapsed,
-            formatted: this.formatTime(cooldownTime - elapsed, command)
+            remaining: remaining,
+            formatted: this.formatTime(remaining, command)
         };
     },
     
@@ -51,29 +53,17 @@ module.exports = {
     },
     
     formatTime(ms, command) {
-        const commandConfig = {
-            'missao': { divisor: 60000, unidade: 'minuto' },
-            'work': { divisor: 60000, unidade: 'minuto' },
-            'search': { divisor: 60000, unidade: 'minuto' },
-            'procurar': { divisor: 60000, unidade: 'minuto' },
-            'pirataria': { divisor: 60000, unidade: 'minuto' },
-            'roubar': { divisor: 60000, unidade: 'minuto' },
-            'daily': { divisor: 3600000, unidade: 'hora' },
-            'diario': { divisor: 3600000, unidade: 'hora' },
-            'weekly': { divisor: 86400000, unidade: 'dia' },
-            'semanal': { divisor: 86400000, unidade: 'dia' },
-            'beg': { divisor: 60000, unidade: 'minuto' },
-            'pedir': { divisor: 60000, unidade: 'minuto' },
-            'sortudo': { divisor: 60000, unidade: 'minuto' },
-            'luck': { divisor: 60000, unidade: 'minuto' },
-            'sorte': { divisor: 60000, unidade: 'minuto' }
-        };
+        const minutos = Math.ceil(ms / 60000);
+        const horas = Math.ceil(ms / 3600000);
+        const dias = Math.ceil(ms / 86400000);
         
-        const config = commandConfig[command] || { divisor: 60000, unidade: 'minuto' };
-        const valor = Math.ceil(ms / config.divisor);
-        const unidade = valor === 1 ? config.unidade : `${config.unidade}s`;
-        
-        return `${valor} ${unidade}`;
+        if (command === 'daily' || command === 'diario') {
+            return `${horas} horas`;
+        }
+        if (command === 'weekly' || command === 'semanal') {
+            return `${dias} dias`;
+        }
+        return `${minutos} minutos`;
     },
     
     getAll(userId) {
