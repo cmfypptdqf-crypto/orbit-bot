@@ -2,7 +2,6 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { getRandomFrase } = require('../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -19,61 +18,35 @@ function saveDB(data) {
 
 module.exports = {
     name: 'pay',
-    aliases: ['pagar', 'transferir', 'dar', 'enviar'],
+    aliases: ['pagar', 'transferir', 'dar'],
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
         if (!user) return message.reply('❌ Use: `bt!pay @usuario <quantia>`');
-        
-        if (user.id === message.author.id) {
-            return message.reply('❌ Você não pode pagar a si mesmo!');
-        }
-        
-        if (user.bot) {
-            return message.reply('❌ Você não pode transferir Orbs para um bot!');
-        }
+        if (user.id === message.author.id) return message.reply('❌ Não pode pagar a si mesmo!');
         
         const amount = parseInt(args[1]);
-        if (isNaN(amount) || amount <= 0) {
-            return message.reply('❌ Digite um valor válido! Ex: `bt!pay @usuario 100`');
-        }
+        if (isNaN(amount) || amount <= 0) return message.reply('❌ Valor inválido!');
         
         const db = getDB();
         const senderId = message.author.id;
         const targetId = user.id;
         
-        if (!db.usuarios[senderId]) {
-            db.usuarios[senderId] = { carteira: 0, banco: 0, inventario: {} };
-        }
-        if (!db.usuarios[targetId]) {
-            db.usuarios[targetId] = { carteira: 0, banco: 0, inventario: {} };
-        }
+        if (!db.usuarios[senderId]) db.usuarios[senderId] = { carteira: 0, banco: 0 };
+        if (!db.usuarios[targetId]) db.usuarios[targetId] = { carteira: 0, banco: 0 };
         
         const senderBalance = db.usuarios[senderId].carteira || 0;
+        if (senderBalance < amount) return message.reply(`❌ Você só tem ${senderBalance.toLocaleString()} Orbs!`);
         
-        if (senderBalance < amount) {
-            return message.reply(`❌ Você só tem ${senderBalance.toLocaleString()} Orbs na carteira!`);
-        }
-        
-        // Realizar transferência
         db.usuarios[senderId].carteira = senderBalance - amount;
         db.usuarios[targetId].carteira = (db.usuarios[targetId].carteira || 0) + amount;
         saveDB(db);
         
-        const fraseSucesso = getRandomFrase('sucesso');
-        
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle(`💸 ${fraseSucesso}`)
-            .setDescription(`📡 Transferência realizada com sucesso!`)
-            .addFields(
-                { name: '📤 Remetente', value: message.author.username, inline: true },
-                { name: '📥 Destinatário', value: user.username, inline: true },
-                { name: '💰 Valor', value: `${amount.toLocaleString()} Orbs`, inline: true },
-                { name: '💵 Seu novo saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true }
-            )
-            .setFooter({ text: '🌌 Orbit • Transferência interestelar' })
-            .setTimestamp();
+            .setTitle('💸 Transferência realizada!')
+            .setDescription(`📡 ${message.author} pagou **${amount.toLocaleString()} Orbs** para ${user}`)
+            .addFields({ name: '💵 Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true });
         
         await message.reply({ embeds: [embed] });
     }
