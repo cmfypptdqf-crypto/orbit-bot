@@ -2,7 +2,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../utilidades/cooldownsManager.js');
+const { calcularBonusTotal, checkCooldown, setCooldown, formatTime } = require('../../utilidades/galaxiaBonus.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -24,10 +24,10 @@ module.exports = {
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
-        // VERIFICAR COOLDOWN
-        const cooldownCheck = cooldownsManager.check(userId, 'missao');
+        // ========== VERIFICAR COOLDOWN ==========
+        const cooldownCheck = checkCooldown(userId, 'missao');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para fazer outra missão!`);
+            return message.reply(`⏰ **Aguarde mais ${cooldownCheck.formatted}** para fazer outra missão!`);
         }
         
         const missoes = [
@@ -40,7 +40,11 @@ module.exports = {
         ];
         
         const missao = missoes[Math.floor(Math.random() * missoes.length)];
-        const ganho = Math.floor(Math.random() * (missao.ganho[1] - missao.ganho[0] + 1) + missao.ganho[0]);
+        let ganhoBase = Math.floor(Math.random() * (missao.ganho[1] - missao.ganho[0] + 1) + missao.ganho[0]);
+        
+        // Bônus do clã + galáxia
+        const bonusInfo = calcularBonusTotal(userId, 'missoes');
+        const ganhoFinal = Math.floor(ganhoBase * bonusInfo.bonus);
         
         const db = getDB();
         
@@ -48,21 +52,24 @@ module.exports = {
             db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
         }
         
-        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganhoFinal;
+        db.usuarios[userId].total_missoes = (db.usuarios[userId].total_missoes || 0) + 1;
         saveDB(db);
         
-        // REGISTRAR COOLDOWN
-        cooldownsManager.set(userId, 'missao');
+        // ========== REGISTRAR COOLDOWN ==========
+        setCooldown(userId, 'missao');
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
             .setTitle('🚀 Missão Completa!')
             .setDescription(`Você completou: **${missao.nome}**`)
             .addFields(
-                { name: '🎉 Ganho', value: `**+${ganho} Orbs**`, inline: true },
+                { name: '💰 Ganho Base', value: `${ganhoBase.toLocaleString()} Orbs`, inline: true },
+                { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
+                { name: '🎉 Total Recebido', value: `**+${ganhoFinal.toLocaleString()} Orbs**`, inline: false },
                 { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: 'Use !cooldowns para ver todos os tempos' });
+            .setFooter({ text: '⏰ Próxima missão disponível em 1 hora!' });
         
         await message.reply({ embeds: [embed] });
     }
