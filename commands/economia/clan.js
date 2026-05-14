@@ -27,7 +27,7 @@ module.exports = {
         // Comando: criar
         if (subcmd === 'criar') {
             const nome = args.slice(1).join(' ');
-            if (!nome) return message.reply('❌ Use: `!clan criar <nome>`');
+            if (!nome) return message.reply('❌ Use: `bt!clan criar <nome>`');
             
             if (nome.length > 20) return message.reply('❌ O nome do clã deve ter no máximo 20 caracteres!');
             
@@ -91,7 +91,7 @@ module.exports = {
                 if (clanPorNome) clanId = clanPorNome.id;
             }
             
-            if (!clanId) return message.reply('❌ Você não está em nenhum clã! Use `!clan criar <nome>` para criar um.');
+            if (!clanId) return message.reply('❌ Você não está em nenhum clã! Use `bt!clan criar <nome>` para criar um.');
             
             const clan = db.clans[clanId];
             if (!clan) return message.reply('❌ Clã não encontrado!');
@@ -126,7 +126,7 @@ module.exports = {
         // Comando: convidar
         else if (subcmd === 'convidar') {
             const user = message.mentions.users.first();
-            if (!user) return message.reply('❌ Use: `!clan convidar @usuario`');
+            if (!user) return message.reply('❌ Use: `bt!clan convidar @usuario`');
             
             if (user.id === message.author.id) return message.reply('❌ Você não pode se convidar!');
             if (user.bot) return message.reply('❌ Não pode convidar bots!');
@@ -148,7 +148,7 @@ module.exports = {
             db.convites[user.id] = { clanId: clanId, expires: Date.now() + 300000 };
             saveDB(db);
             
-            await message.reply(`✅ Convite enviado para ${user}! Use \`!clan entrar\` para aceitar.`);
+            await message.reply(`✅ Convite enviado para ${user}! Use \`bt!clan entrar\` para aceitar.`);
         }
         
         // Comando: entrar
@@ -189,7 +189,7 @@ module.exports = {
             if (!clan) return message.reply('❌ Clã não encontrado!');
             
             if (clan.dono === userId) {
-                return message.reply('❌ Você é o líder! Para sair, primeiro transfira a liderança com `!clan transferir @usuario` ou delete o clã com `!clan deletar`');
+                return message.reply('❌ Você é o líder! Para sair, primeiro transfira a liderança com `bt!clan transferir @usuario` ou delete o clã com `!clan deletar`');
             }
             
             clan.membros = clan.membros.filter(id => id !== userId);
@@ -226,7 +226,7 @@ module.exports = {
         // Comando: transferir
         else if (subcmd === 'transferir') {
             const user = message.mentions.users.first();
-            if (!user) return message.reply('❌ Use: `!clan transferir @usuario`');
+            if (!user) return message.reply('❌ Use: `bt!clan transferir @usuario`');
             
             const db = getDB();
             const userId = message.author.id;
@@ -285,16 +285,16 @@ module.exports = {
                 .setTitle('🚀 Sistema de Clãs Espaciais')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
-                    { name: '📋 `!clan criar <nome>`', value: 'Cria um novo clã (custa 50.000 Orbs)', inline: false },
-                    { name: 'ℹ️ `!clan info [@clã]`', value: 'Mostra informações do clã', inline: false },
-                    { name: '👥 `!clan convidar @user`', value: 'Convida um usuário para o clã (apenas líder)', inline: false },
-                    { name: '✅ `!clan entrar`', value: 'Aceita um convite para um clã', inline: false },
-                    { name: '🚪 `!clan sair`', value: 'Sai do clã atual', inline: false },
-                    { name: '👑 `!clan transferir @user`', value: 'Transfere a liderança (apenas líder)', inline: false },
-                    { name: '💀 `!clan deletar`', value: 'Deleta o clã (apenas líder)', inline: false },
-                    { name: '🏆 `!clan top`', value: 'Mostra o ranking de clãs', inline: false }
+                    { name: '📋 `bt!clan criar <nome>`', value: 'Cria um novo clã (custa 50.000 Orbs)', inline: false },
+                    { name: 'ℹ️ `bt!clan info [@clã]`', value: 'Mostra informações do clã', inline: false },
+                    { name: '👥 `bt!clan convidar @user`', value: 'Convida um usuário para o clã (apenas líder)', inline: false },
+                    { name: '✅ `bt!clan entrar`', value: 'Aceita um convite para um clã', inline: false },
+                    { name: '🚪 `bt!clan sair`', value: 'Sai do clã atual', inline: false },
+                    { name: '👑 `bt!clan transferir @user`', value: 'Transfere a liderança (apenas líder)', inline: false },
+                    { name: '💀 `bt!clan deletar`', value: 'Deleta o clã (apenas líder)', inline: false },
+                    { name: '🏆 `bt!clan top`', value: 'Mostra o ranking de clãs', inline: false }
                 )
-                .setFooter({ text: 'Use !clan <comando> para mais informações' });
+                .setFooter({ text: 'Use bt! <comando> para mais informações' });
             
             await message.reply({ embeds: [embed] });
         }
