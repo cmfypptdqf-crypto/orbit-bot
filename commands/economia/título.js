@@ -1,13 +1,14 @@
-// commands/economia/titulo.js
+// commands/conquistas/titulos.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularNivel } = require('../utilidades/levelSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
-    if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
+    if (!fs.existsSync(dbPath)) {
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
+    }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
@@ -24,7 +25,7 @@ const titulos = {
 };
 
 module.exports = {
-    name: 'titulo',
+    name: 'titulos',
     aliases: ['title', 'título'],
     
     async executePrefix(message, args, client) {
@@ -33,7 +34,7 @@ module.exports = {
         const db = getDB();
         
         if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, titulos: [], tituloAtivo: null, xpTotal: 0 };
+            db.usuarios[userId] = { carteira: 0, titulos: [], tituloAtivo: null, xpTotal: 0 };
         }
         
         const nivelUsuario = calcularNivel(db.usuarios[userId].xpTotal || 0);
@@ -42,79 +43,63 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
                 .setTitle('🏷️ Títulos Disponíveis')
-                .setDescription('Use `bt!titulo comprar <id>` para adquirir um título!');
+                .setDescription('Use `bt!titulos comprar <id>` para adquirir um título!');
             
             for (const [id, titulo] of Object.entries(titulos)) {
                 const liberado = nivelUsuario >= titulo.nivelMin;
                 embed.addFields({
                     name: `${id} - ${titulo.nome}`,
-                    value: `💰 ${titulo.preco.toLocaleString()} Orbs | ${liberado ? '🟢 Disponível' : `🔒 Stellar XP Nível ${titulo.nivelMin}+`}`,
+                    value: `💰 ${titulo.preco.toLocaleString()} Orbs | ${liberado ? '🟢 Disponível' : `🔒 Nível ${titulo.nivelMin}+`}`,
                     inline: false
                 });
             }
-            return await message.reply({ embeds: [embed] });
+            await message.reply({ embeds: [embed] });
         }
         
-        if (subcmd === 'comprar') {
+        else if (subcmd === 'comprar') {
             const id = args[1];
             if (!id || !titulos[id]) return message.reply('❌ ID inválido!');
             
             const titulo = titulos[id];
-            if (nivelUsuario < titulo.nivelMin) {
-                return message.reply(`❌ Você precisa ser Stellar XP nível ${titulo.nivelMin}!`);
-            }
-            if ((db.usuarios[userId].carteira || 0) < titulo.preco) {
-                return message.reply(`❌ Você precisa de ${titulo.preco.toLocaleString()} Orbs!`);
-            }
-            if (db.usuarios[userId].titulos?.includes(id)) {
-                return message.reply('❌ Você já possui este título!');
-            }
+            if (nivelUsuario < titulo.nivelMin) return message.reply(`❌ Você precisa ser nível ${titulo.nivelMin}!`);
+            if ((db.usuarios[userId].carteira || 0) < titulo.preco) return message.reply(`❌ Você precisa de ${titulo.preco.toLocaleString()} Orbs!`);
+            if (db.usuarios[userId].titulos?.includes(id)) return message.reply('❌ Você já possui este título!');
             
             db.usuarios[userId].carteira -= titulo.preco;
             if (!db.usuarios[userId].titulos) db.usuarios[userId].titulos = [];
             db.usuarios[userId].titulos.push(id);
             saveDB(db);
             
-            await message.reply(`✅ Você adquiriu o título **${titulo.nome}**! Use \`bt!titulo equipar ${id}\` para usá-lo.`);
+            await message.reply(`✅ Você adquiriu o título **${titulo.nome}**! Use \`bt!titulos equipar ${id}\` para usá-lo.`);
         }
         
-        if (subcmd === 'meus') {
-            const meusTitulos = db.usuarios[userId].titulos || [];
-            const tituloAtivo = db.usuarios[userId].tituloAtivo;
-            
-            const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
-                .setTitle(`🏷️ Títulos de ${message.author.username}`)
-                .setThumbnail(message.author.displayAvatarURL());
-            
-            if (meusTitulos.length === 0) {
-                embed.setDescription('Você ainda não possui nenhum título!');
-            } else {
-                const lista = meusTitulos.map(id => {
-                    const t = titulos[id];
-                    return `**${t.nome}**${tituloAtivo === id ? ' ✅ ATIVO' : ''}`;
-                }).join('\n');
-                embed.addFields({ name: '📜 Seus Títulos', value: lista, inline: false });
-            }
-            await message.reply({ embeds: [embed] });
-        }
-        
-        if (subcmd === 'equipar') {
+        else if (subcmd === 'equipar') {
             const id = args[1];
-            if (!db.usuarios[userId]?.titulos?.includes(id)) {
-                return message.reply('❌ Você não possui este título!');
-            }
+            if (!db.usuarios[userId]?.titulos?.includes(id)) return message.reply('❌ Você não possui este título!');
             db.usuarios[userId].tituloAtivo = id;
             saveDB(db);
             await message.reply(`✅ Agora você está usando o título **${titulos[id].nome}**!`);
         }
         
-        if (!subcmd) {
+        else if (subcmd === 'meus') {
+            const meusTitulos = db.usuarios[userId].titulos || [];
+            const tituloAtivo = db.usuarios[userId].tituloAtivo;
+            const lista = meusTitulos.map(id => `**${titulos[id].nome}**${tituloAtivo === id ? ' ✅ ATIVO' : ''}`).join('\n');
+            
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
-                .setTitle('🏷️ Sistema de Títulos')
-                .setDescription('Comandos: `listar`, `meus`, `comprar <id>`, `equipar <id>`');
+                .setColor(0x00FF00)
+                .setTitle(`🏷️ Títulos de ${message.author.username}`)
+                .setDescription(lista || 'Nenhum título ainda');
             await message.reply({ embeds: [embed] });
+        }
+        
+        else {
+            await message.reply('🏷️ **Sistema de Títulos**\n`bt!titulos listar`\n`bt!titulos comprar <id>`\n`bt!titulos equipar <id>`\n`bt!titulos meus`');
         }
     }
 };
+
+function calcularNivel(xpTotal) {
+    if (xpTotal <= 0) return 1;
+    return Math.min(100, Math.floor(Math.sqrt(xpTotal / 100)) + 1);
+}
