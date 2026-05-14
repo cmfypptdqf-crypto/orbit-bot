@@ -10,10 +10,6 @@ function getDB() {
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
-const cooldowns = new Map();
-function checkCooldown(userId, comando) { /* implementado no cooldownsManager */ }
-function setCooldown(userId, comando) { /* implementado no cooldownsManager */ }
-
 const galaxias = {
     'via_lactea': { bonus: { carteira: 1.05, missoes: 1.05, ataque: 1.03 }, nome: '🌌 Via Láctea' },
     'andromeda': { bonus: { carteira: 1.10, missoes: 1.08, ataque: 1.05 }, nome: '🌀 Andrômeda' },
@@ -64,4 +60,4 @@ function calcularBonusTotal(userId, tipo) {
     };
 }
 
-module.exports = { getBonusDoUsuario, getVIPBonus, calcularBonusTotal, galaxias, checkCooldown, setCooldown };
+module.exports = { getBonusDoUsuario, getVIPBonus, calcularBonusTotal, galaxias };
