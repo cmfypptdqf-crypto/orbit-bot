@@ -1,9 +1,10 @@
+// commands/economia/beg.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const cooldownsManager = require('../../utils/cooldownsManager.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
-const cooldowns = new Map();
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
@@ -22,23 +23,14 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
-        const cooldownKey = `beg_${userId}`;
-        const lastBeg = cooldowns.get(cooldownKey);
         
-        // Cooldown de 5 minutos
-        if (lastBeg && Date.now() - lastBeg < 300000) {
-            const remaining = Math.ceil((300000 - (Date.now() - lastBeg)) / 60000);
-            return message.reply(`⏰ Você já pediu Orbs recentemente! Volte em **${remaining} minutos**.`);
+        // VERIFICAR COOLDOWN
+        const cooldownCheck = cooldownsManager.check(userId, 'beg');
+        if (!cooldownCheck.available) {
+            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para pedir novamente!`);
         }
         
-        const db = getDB();
-        
-        if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
-        }
-        
-        // Eventos positivos
-        const eventosPositivos = [
+        const eventos = [
             { texto: '👽 Um alienígena ficou com pena de você', ganho: [200, 400], cor: 0x9B59B6 },
             { texto: '🚀 Um viajante espacial jogou Orbs para você', ganho: [150, 300], cor: 0x3498DB },
             { texto: '🛸 Uma nave desconhecida dropou suprimentos', ganho: [100, 250], cor: 0x00FF00 },
@@ -48,57 +40,30 @@ module.exports = {
             { texto: '🪐 Saturno alinhou os planetas a seu favor', ganho: [220, 450], cor: 0xFF9800 }
         ];
         
-        // Eventos negativos (azar ao pedir)
-        const eventosNegativos = [
-            { texto: '👮 A Patrulha Galáctica te multou por perturbação', perda: [50, 150], cor: 0xFF0000 },
-            { texto: '💀 Um caçador de recompensas te roubou', perda: [30, 100], cor: 0xFF0000 },
-            { texto: '🌑 Um buraco negro sugou suas Orbs', perda: [80, 200], cor: 0xFF0000 },
-            { texto: '🤖 Robôs de segurança te expulsaram do mercado', perda: [40, 120], cor: 0xFF0000 },
-            { texto: '🦠 Uma criatura cósmica comeu suas Orbs', perda: [60, 180], cor: 0xFF0000 }
-        ];
+        const evento = eventos[Math.floor(Math.random() * eventos.length)];
+        const ganho = Math.floor(Math.random() * (evento.ganho[1] - evento.ganho[0] + 1) + evento.ganho[0]);
         
-        // 80% chance de evento positivo, 20% negativo
-        const ePositivo = Math.random() < 0.8;
+        const db = getDB();
         
-        let embed;
-        
-        if (ePositivo) {
-            const evento = eventosPositivos[Math.floor(Math.random() * eventosPositivos.length)];
-            const ganho = Math.floor(Math.random() * (evento.ganho[1] - evento.ganho[0] + 1) + evento.ganho[0]);
-            
-            db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
-            saveDB(db);
-            
-            embed = new EmbedBuilder()
-                .setColor(evento.cor)
-                .setTitle('🎭 Esmola Espacial')
-                .setDescription(`${evento.texto}`)
-                .addFields(
-                    { name: '✨ Você recebeu', value: `**+${ganho} Orbs**`, inline: true },
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
-        } else {
-            const evento = eventosNegativos[Math.floor(Math.random() * eventosNegativos.length)];
-            const perda = Math.floor(Math.random() * (evento.perda[1] - evento.perda[0] + 1) + evento.perda[0]);
-            const perdaReal = Math.min(perda, db.usuarios[userId].carteira || 0);
-            
-            db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) - perdaReal;
-            saveDB(db);
-            
-            embed = new EmbedBuilder()
-                .setColor(evento.cor)
-                .setTitle('😭 Azar Espacial')
-                .setDescription(`${evento.texto}`)
-                .addFields(
-                    { name: '💸 Você perdeu', value: `**-${perdaReal} Orbs**`, inline: true },
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
+        if (!db.usuarios[userId]) {
+            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
         }
         
-        cooldowns.set(cooldownKey, Date.now());
+        db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganho;
+        saveDB(db);
         
-        embed.setFooter({ text: 'Volte daqui 5 minutos para pedir novamente' })
-            .setTimestamp();
+        // REGISTRAR COOLDOWN
+        cooldownsManager.set(userId, 'beg');
+        
+        const embed = new EmbedBuilder()
+            .setColor(evento.cor)
+            .setTitle('🎭 Esmola Espacial')
+            .setDescription(evento.texto)
+            .addFields(
+                { name: '✨ Você recebeu', value: `**+${ganho} Orbs**`, inline: true },
+                { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+            )
+            .setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
         
         await message.reply({ embeds: [embed] });
     }
