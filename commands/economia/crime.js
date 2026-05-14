@@ -2,7 +2,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const cooldownsManager = require('../utilidades/cooldownsManager.js');
+const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -19,27 +19,21 @@ function saveDB(data) {
 
 module.exports = {
     name: 'pirataria',
-    aliases: ['roubar', 'crime', 'pirata', 'espacial'],
+    aliases: ['roubar', 'crime', 'pirata'],
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `bt!crime @usuario`');
-        
-        if (user.id === message.author.id) {
-            return message.reply('❌ Você não pode atacar sua própria nave!');
-        }
-        
-        if (user.bot) {
-            return message.reply('❌ Você não pode roubar um drone!');
-        }
+        if (!user) return message.reply('❌ Use: `bt!pirataria @usuario`');
+        if (user.id === message.author.id) return message.reply('❌ Você não pode atacar sua própria nave!');
+        if (user.bot) return message.reply('❌ Não pode roubar um drone!');
         
         const userId = message.author.id;
         const targetId = user.id;
         
-        // VERIFICAR COOLDOWN
-        const cooldownCheck = cooldownsManager.check(userId, 'pirataria');
+        // ========== VERIFICAR COOLDOWN ==========
+        const cooldownCheck = checkCooldown(userId, 'pirataria');
         if (!cooldownCheck.available) {
-            return message.reply(`⏰ Aguarde **${cooldownCheck.formatted}** para outro ataque pirata!`);
+            return message.reply(`⏰ **Aguarde mais ${cooldownCheck.formatted}** para outro ataque pirata!`);
         }
         
         const db = getDB();
@@ -57,28 +51,36 @@ module.exports = {
             return message.reply(`❌ ${user.username} está sem Orbs para serem saqueados!`);
         }
         
-        const sucesso = Math.random() < 0.4;
+        // Chance base + bônus do clã para ataque
+        const bonusAtaque = calcularBonusTotal(userId, 'ataque');
+        let chanceSucesso = 0.4 * bonusAtaque.bonus;
+        chanceSucesso = Math.min(0.7, chanceSucesso);
+        
+        const sucesso = Math.random() < chanceSucesso;
+        
+        // ========== REGISTRAR COOLDOWN ==========
+        setCooldown(userId, 'pirataria');
         
         if (sucesso) {
             const percentual = Math.random() * (0.3 - 0.1) + 0.1;
             let valorRoubado = Math.floor(vitimaOrbs * percentual);
-            valorRoubado = Math.max(50, Math.min(valorRoubado, 3000));
+            valorRoubado = Math.max(50, Math.min(valorRoubado, 5000));
             
-            db.usuarios[userId].carteira += valorRoubado;
-            db.usuarios[targetId].carteira -= valorRoubado;
+            db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + valorRoubado;
+            db.usuarios[targetId].carteira = (db.usuarios[targetId].carteira || 0) - valorRoubado;
+            db.usuarios[userId].total_ataques = (db.usuarios[userId].total_ataques || 0) + 1;
             saveDB(db);
-            
-            // REGISTRAR COOLDOWN
-            cooldownsManager.set(userId, 'pirataria');
             
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
                 .setTitle('☄️ Ataque Pirata Bem Sucedido!')
-                .setDescription(`Você saqueou **${valorRoubado} Orbs** da nave de ${user.username}`)
+                .setDescription(`Você saqueou **${valorRoubado.toLocaleString()} Orbs** da nave de ${user.username}`)
                 .addFields(
-                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    { name: '🎯 Chance com bônus', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
+                    { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
+                    { name: '✨ Bônus aplicado', value: bonusAtaque.texto || 'Nenhum', inline: false }
                 )
-                .setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
+                .setFooter({ text: '⏰ Próximo ataque disponível em 30 minutos!' });
             
             await message.reply({ embeds: [embed] });
         } else {
@@ -88,18 +90,15 @@ module.exports = {
             db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) - perdaReal;
             saveDB(db);
             
-            // REGISTRAR COOLDOWN (mesmo falhando)
-            cooldownsManager.set(userId, 'pirataria');
-            
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle('🚨 Ataque Falhou!')
                 .setDescription(`Você foi capturado pela Patrulha Galáctica ao tentar atacar ${user.username}`)
                 .addFields(
-                    { name: '💰 Multa paga', value: `${perdaReal} Orbs`, inline: true },
+                    { name: '💰 Multa paga', value: `${perdaReal.toLocaleString()} Orbs`, inline: true },
                     { name: '💵 Seu Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
-                .setFooter({ text: 'Use bt!cooldowns para ver todos os tempos' });
+                .setFooter({ text: '⏰ Próximo ataque disponível em 30 minutos!' });
             
             await message.reply({ embeds: [embed] });
         }
