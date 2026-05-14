@@ -22,7 +22,7 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `!roubar @usuario`');
+        if (!user) return message.reply('❌ Use: `bt!roubar @usuario`');
         
         if (user.id === message.author.id) {
             return message.reply('❌ Você não pode roubar a si mesmo!');
@@ -75,9 +75,9 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
                 .setTitle('💰 Roubo realizado com sucesso!')
-                .setDescription(`Você roubou **${valorRoubado.toLocaleString()} moedas** de ${user.username}`)
+                .setDescription(`Você roubou **${valorRoubado.toLocaleString()} orbs** de ${user.username}`)
                 .addFields(
-                    { name: 'Seu novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} moedas`, inline: true }
+                    { name: 'Seu novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
                 );
             
             await message.reply({ embeds: [embed] });
@@ -94,8 +94,8 @@ module.exports = {
                 .setTitle('😞 Roubo falhou!')
                 .setDescription(`Você foi pego tentando roubar ${user.username}`)
                 .addFields(
-                    { name: 'Multa paga', value: `${perdaReal.toLocaleString()} moedas`, inline: true },
-                    { name: 'Seu novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} moedas`, inline: true }
+                    { name: 'Multa paga', value: `${perdaReal.toLocaleString()} orbs`, inline: true },
+                    { name: 'Seu novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true }
                 );
             
             await message.reply({ embeds: [embed] });
