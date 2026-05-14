@@ -18,60 +18,30 @@ function saveDB(data) {
 
 module.exports = {
     name: 'bet',
-    aliases: ['apostar', 'caraoucoroa', 'coinflip'],
+    aliases: ['apostar', 'caraoucoroa'],
     
     async executePrefix(message, args, client) {
         const amount = parseInt(args[0]);
         const escolha = args[1]?.toLowerCase();
         
-        if (isNaN(amount) || amount <= 0) {
-            return message.reply('❌ Aposte um valor válido! Ex: `bt!bet 100 cara`');
-        }
-        
-        if (!escolha || (escolha !== 'cara' && escolha !== 'coroa')) {
-            return message.reply('❌ Escolha "cara" ou "coroa"! Ex: `bt!bet 100 cara`');
-        }
+        if (isNaN(amount) || amount <= 0) return message.reply('❌ Use: `bt!bet <valor> <cara/coroa>`');
+        if (!['cara', 'coroa'].includes(escolha)) return message.reply('❌ Escolha "cara" ou "coroa"');
         
         const userId = message.author.id;
         const db = getDB();
-        
-        if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
-        }
-        
-        const carteira = db.usuarios[userId].carteira || 0;
-        
-        if (carteira < amount) {
-            return message.reply(`❌ Você só tem ${carteira.toLocaleString()} Orbs na carteira!`);
-        }
+        if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
+        if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('❌ Saldo insuficiente!');
         
         const resultado = Math.random() < 0.5 ? 'cara' : 'coroa';
         const ganhou = escolha === resultado;
         
         if (ganhou) {
-            db.usuarios[userId].carteira = carteira + amount;
-            const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
-                .setTitle('🎉 Você ganhou!')
-                .setDescription(`🪙 Deu **${resultado}**!`)
-                .addFields(
-                    { name: '💰 Ganho', value: `+${amount.toLocaleString()} Orbs`, inline: true },
-                    { name: '💵 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
-            await message.reply({ embeds: [embed] });
+            db.usuarios[userId].carteira += amount;
+            await message.reply(`🎉 Deu ${resultado}! Você ganhou ${amount.toLocaleString()} Orbs!`);
         } else {
-            db.usuarios[userId].carteira = carteira - amount;
-            const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle('😞 Você perdeu!')
-                .setDescription(`🪙 Deu **${resultado}**...`)
-                .addFields(
-                    { name: '💰 Perda', value: `-${amount.toLocaleString()} Orbs`, inline: true },
-                    { name: '💵 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-                );
-            await message.reply({ embeds: [embed] });
+            db.usuarios[userId].carteira -= amount;
+            await message.reply(`😞 Deu ${resultado}! Você perdeu ${amount.toLocaleString()} Orbs!`);
         }
-        
         saveDB(db);
     }
 };
