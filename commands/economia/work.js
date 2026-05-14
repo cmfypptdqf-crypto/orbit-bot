@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { calcularBonusTotal, checkCooldown, setCooldown } = require('../../utilidades/galaxiaBonus.js');
 const { getRandomFrase, checkRandomEvent, processEvent, getComandoFrase } = require('../../utilidades/orbitAI.js');
+
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
@@ -24,10 +25,8 @@ module.exports = {
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         
-        // Frase inicial do Orbit
         const fraseInicial = getComandoFrase('missao') || getRandomFrase('inicio');
         
-        // Verificar cooldown
         const cooldownCheck = checkCooldown(userId, 'missao');
         if (!cooldownCheck.available) {
             const fraseCooldown = getRandomFrase('cooldown');
@@ -46,7 +45,6 @@ module.exports = {
         const missao = missoes[Math.floor(Math.random() * missoes.length)];
         let ganhoBase = Math.floor(Math.random() * (missao.ganho[1] - missao.ganho[0] + 1) + missao.ganho[0]);
         
-        // Bônus do clã + galáxia
         const bonusInfo = calcularBonusTotal(userId, 'missoes');
         const ganhoFinal = Math.floor(ganhoBase * bonusInfo.bonus);
         
@@ -59,7 +57,6 @@ module.exports = {
         db.usuarios[userId].carteira = (db.usuarios[userId].carteira || 0) + ganhoFinal;
         db.usuarios[userId].total_missoes = (db.usuarios[userId].total_missoes || 0) + 1;
         
-        // Verificar evento aleatório
         const evento = checkRandomEvent();
         let eventoResultado = null;
         
@@ -68,8 +65,6 @@ module.exports = {
         }
         
         saveDB(db);
-        
-        // Registrar cooldown
         setCooldown(userId, 'missao');
         
         const fraseSucesso = getRandomFrase('sucesso');
