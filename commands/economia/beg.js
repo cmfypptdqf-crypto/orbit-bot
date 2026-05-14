@@ -59,7 +59,8 @@ module.exports = {
             .addFields(
                 { name: '✨ Recebido', value: `+${ganho.toLocaleString()} Orbs`, inline: true },
                 { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
-            );
+            )
+            .setFooter({ text: '🎭 Esmola espacial • Volte em 5 minutos' });
         
         if (eventoResultado) {
             embed.addFields({ name: '🎲 EVENTO!', value: eventoResultado.mensagem, inline: false });
