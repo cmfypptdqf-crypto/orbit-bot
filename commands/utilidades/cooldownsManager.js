@@ -1,3 +1,4 @@
+// commands/utilidades/cooldownsManager.js
 const cooldowns = new Map();
 
 module.exports = {
@@ -8,8 +9,8 @@ module.exports = {
         const lastTime = cooldowns.get(key);
         if (!lastTime) return { available: true, remaining: 0 };
         
+        const cooldownTime = this.getCooldownTime(command);
         const elapsed = Date.now() - lastTime;
-        let cooldownTime = this.getCooldownTime(command);
         
         if (elapsed >= cooldownTime) {
             cooldowns.delete(key);
@@ -17,7 +18,6 @@ module.exports = {
         }
         
         const remaining = cooldownTime - elapsed;
-        
         return { 
             available: false, 
             remaining: remaining,
@@ -32,22 +32,11 @@ module.exports = {
     
     getCooldownTime(command) {
         const tempos = {
-            'missao': 3600000,
-            'work': 3600000,
-            'search': 600000,
-            'procurar': 600000,
-            'pirataria': 1800000,
-            'roubar': 1800000,
-            'crime': 1800000,
-            'daily': 86400000,
-            'diario': 86400000,
-            'weekly': 604800000,
-            'semanal': 604800000,
-            'beg': 300000,
-            'pedir': 300000,
-            'sortudo': 3600000,
-            'luck': 3600000,
-            'sorte': 3600000
+            'missao': 3600000, 'work': 3600000,
+            'search': 600000, 'pirataria': 1800000, 'roubar': 1800000,
+            'daily': 86400000, 'diario': 86400000,
+            'weekly': 604800000, 'semanal': 604800000,
+            'beg': 300000, 'sortudo': 3600000
         };
         return tempos[command] || 0;
     },
@@ -57,19 +46,16 @@ module.exports = {
         const horas = Math.ceil(ms / 3600000);
         const dias = Math.ceil(ms / 86400000);
         
-        if (command === 'daily' || command === 'diario') {
-            return `${horas} horas`;
-        }
-        if (command === 'weekly' || command === 'semanal') {
-            return `${dias} dias`;
-        }
-        return `${minutos} minutos`;
+        if (command === 'daily' || command === 'diario') return `${horas} horas`;
+        if (command === 'weekly' || command === 'semanal') return `${dias} dias`;
+        if (minutos < 60) return `${minutos} minutos`;
+        if (horas < 24) return `${horas} horas`;
+        return `${dias} dias`;
     },
     
     getAll(userId) {
         const comandos = ['missao', 'search', 'pirataria', 'daily', 'weekly', 'beg', 'sortudo'];
         const resultados = [];
-        
         for (const cmd of comandos) {
             const result = this.check(userId, cmd);
             resultados.push({
@@ -78,7 +64,7 @@ module.exports = {
                 formatted: result.available ? '✅ Disponível' : `⏰ ${this.formatTime(result.remaining, cmd)}`
             });
         }
-        
         return resultados;
     }
 };
+EOF
