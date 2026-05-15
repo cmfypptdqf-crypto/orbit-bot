@@ -2,6 +2,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { adicionarXP, calcularXPporGanho } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -16,6 +17,48 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
+// Cooldowns específicos para o cassino (5 horas)
+const casinoCooldowns = new Map();
+
+function checkCasinoCooldown(userId) {
+    const lastUse = casinoCooldowns.get(userId);
+    if (!lastUse) return { available: true, remaining: 0 };
+    
+    const cooldownTime = 5 * 60 * 60 * 1000; // 5 horas em milissegundos
+    const elapsed = Date.now() - lastUse;
+    
+    if (elapsed >= cooldownTime) {
+        casinoCooldowns.delete(userId);
+        return { available: true, remaining: 0 };
+    }
+    
+    const remaining = cooldownTime - elapsed;
+    const horas = Math.ceil(remaining / 3600000);
+    const minutos = Math.ceil(remaining / 60000);
+    
+    let formatted = '';
+    if (horas >= 1) {
+        formatted = `${horas} hora(s)`;
+    } else {
+        formatted = `${minutos} minutos`;
+    }
+    
+    return { available: false, remaining, formatted };
+}
+
+function setCasinoCooldown(userId) {
+    casinoCooldowns.set(userId, Date.now());
+}
+
+// Função para verificar boosts ativos
+function getBoostMultiplier(userId, db) {
+    let multiplier = 1.0;
+    if (db.usuarios[userId]?.boosts?.ganhos && db.usuarios[userId].boosts.ganhos.expira > Date.now()) {
+        multiplier *= db.usuarios[userId].boosts.ganhos.bonus;
+    }
+    return multiplier;
+}
+
 module.exports = {
     name: 'cassino',
     aliases: ['roleta', 'caçaniquel', 'crate'],
@@ -24,12 +67,18 @@ module.exports = {
         const subcmd = args[0]?.toLowerCase();
         const userId = message.author.id;
         
+        // ========== VERIFICAR COOLDOWN GERAL DO CASSINO (5 HORAS) ==========
+        const cooldownCheck = checkCasinoCooldown(userId);
+        if (!cooldownCheck.available) {
+            return message.reply(`⏰ **Cassino em recarga!** Aguarde mais **${cooldownCheck.formatted}** para jogar novamente.`);
+        }
+        
         if (subcmd === 'abrir') {
             const amount = parseInt(args[1]) || 2000;
             if (isNaN(amount) || amount < 2000) return message.reply('<:emoji_47:1504081397373997076> Uma **Nebula Crate** custa 2.000 Orbs! Use `bt!crate abrir`');
             
             const db = getDB();
-            if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
+            if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0, xpTotal: 0 };
             if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente para abrir uma **Nebula Crate**!');
             
             const premios = [
@@ -43,20 +92,64 @@ module.exports = {
                 { nome: '10000 Orbs', qtd: 10000, valor: 10000, raridade: 'Lendário', isMoney: true }
             ];
             
-            const premio = premios[Math.floor(Math.random() * premios.length)];
+            // Aplicar boost de sorte (Amuleto da Sorte)
+            const hasSorteBoost = db.usuarios[userId]?.boosts?.sorte && db.usuarios[userId].boosts.sorte.expira > Date.now();
+            let premio;
+            
+            if (hasSorteBoost) {
+                // Com boost, chances melhores
+                const sortePremios = [
+                    ...premios.filter(p => p.raridade === 'Raro' || p.raridade === 'Épico' || p.raridade === 'Lendário'),
+                    ...premios
+                ];
+                premio = sortePremios[Math.floor(Math.random() * sortePremios.length)];
+            } else {
+                premio = premios[Math.floor(Math.random() * premios.length)];
+            }
+            
             db.usuarios[userId].carteira -= amount;
+            
+            let mensagem = '';
+            let xpGanho = 0;
             
             if (premio.isMoney) {
                 db.usuarios[userId].carteira += premio.qtd;
-                saveDB(db);
-                await message.reply(`📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.qtd.toLocaleString()} Orbs**!`);
+                mensagem = `📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.qtd.toLocaleString()} Orbs**!`;
+                xpGanho = calcularXPporGanho(premio.qtd);
             } else {
                 if (!db.usuarios[userId].inventario) db.usuarios[userId].inventario = {};
                 const itemId = { '🔭 Telescópio Avançado': '1', '🚀 Nave Explorer': '2', '💍 Anel Cósmico': '3', '🛡️ Escudo Energético': '4', '🍀 Amuleto da Sorte': '11', '⭐ Orbit Prime Bronze': '7' }[premio.nome] || '1';
                 db.usuarios[userId].inventario[itemId] = (db.usuarios[userId].inventario[itemId] || 0) + premio.qtd;
-                saveDB(db);
-                await message.reply(`📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.nome}**!`);
+                mensagem = `📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.nome}**!`;
+                xpGanho = calcularXPporGanho(premio.valor);
             }
+            
+            // Adicionar XP
+            const resultadoXP = adicionarXP(userId, xpGanho, 'cassino_crate');
+            
+            saveDB(db);
+            setCasinoCooldown(userId);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x9B59B6)
+                .setTitle('📦 Nebula Crate')
+                .setDescription(mensagem)
+                .addFields(
+                    { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true },
+                    { name: '💎 Raridade', value: premio.raridade, inline: true },
+                    { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                )
+                .setFooter({ text: '🎰 Próxima caixa disponível em 5 horas!' });
+            
+            if (hasSorteBoost) {
+                embed.addFields({ name: '🍀 Amuleto da Sorte', value: 'Ativo! Suas chances foram melhoradas!', inline: false });
+            }
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
+            await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'roleta') {
@@ -66,27 +159,121 @@ module.exports = {
             if (!['vermelho', 'preto', 'verde'].includes(cor)) return message.reply('<:emoji_47:1504081397373997076> Escolha: vermelho, preto ou verde');
             
             const db = getDB();
-            if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
+            if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0, xpTotal: 0 };
             if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente!');
             
-            const resultado = ['vermelho', 'preto', 'verde'][Math.floor(Math.random() * 3)];
-            const multiplicador = cor === 'verde' ? 14 : 2;
-            const ganhou = cor === resultado;
+            // Aplicar boost de sorte
+            const hasSorteBoost = db.usuarios[userId]?.boosts?.sorte && db.usuarios[userId].boosts.sorte.expira > Date.now();
+            
+            // Roleta: 18 vermelho, 18 preto, 1 verde (total 37)
+            const roleta = [
+                ...Array(18).fill('vermelho'),
+                ...Array(18).fill('preto'),
+                'verde'
+            ];
+            
+            const resultado = roleta[Math.floor(Math.random() * roleta.length)];
+            let multiplicador = cor === 'verde' ? 14 : 2;
+            
+            // Se tiver boost de sorte e escolheu vermelho/preto, chance ligeiramente maior
+            let ganhou = cor === resultado;
+            if (hasSorteBoost && (cor === 'vermelho' || cor === 'preto') && !ganhou) {
+                // Segunda chance com boost
+                const segundaChance = Math.random() < 0.3;
+                if (segundaChance) {
+                    ganhou = true;
+                    multiplicador = 1.5;
+                }
+            }
+            
+            // Aplicar boost de ganhos
+            const boostMultiplier = getBoostMultiplier(userId, db);
             
             if (ganhou) {
-                const ganho = amount * multiplicador;
+                let ganho = amount * multiplicador;
+                ganho = Math.floor(ganho * boostMultiplier);
+                
                 db.usuarios[userId].carteira += ganho;
+                
+                // Adicionar XP
+                const xpGanho = calcularXPporGanho(ganho);
+                const resultadoXP = adicionarXP(userId, xpGanho, 'cassino_roleta');
+                
                 saveDB(db);
-                await message.reply(`🎡 Roleta Galáctica caiu em **${resultado}**!\n🎉 Você ganhou ${ganho.toLocaleString()} Orbs!`);
+                setCasinoCooldown(userId);
+                
+                const embed = new EmbedBuilder()
+                    .setColor(0x00FF00)
+                    .setTitle('🎡 Roleta Galáctica')
+                    .setDescription(`🎲 A roleta caiu em **${resultado}**!\n🎉 **VOCÊ GANHOU!**`)
+                    .addFields(
+                        { name: '💰 Valor Apostado', value: `${amount.toLocaleString()} Orbs`, inline: true },
+                        { name: '🎯 Multiplicador', value: `${multiplicador}x`, inline: true },
+                        { name: '🎁 Ganho', value: `+${ganho.toLocaleString()} Orbs`, inline: true },
+                        { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true },
+                        { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    )
+                    .setFooter({ text: '🎰 Próxima jogada disponível em 5 horas!' });
+                
+                if (boostMultiplier > 1) {
+                    embed.addFields({ name: '📈 Boost Ativo', value: `+${Math.round((boostMultiplier - 1) * 100)}%`, inline: true });
+                }
+                
+                if (hasSorteBoost) {
+                    embed.addFields({ name: '🍀 Amuleto da Sorte', value: 'Ativo! Sua sorte foi renovada!', inline: false });
+                }
+                
+                if (resultadoXP.levelUp) {
+                    embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+                }
+                
+                await message.reply({ embeds: [embed] });
             } else {
                 db.usuarios[userId].carteira -= amount;
+                
+                // Perde um pouco de XP
+                const xpPerdido = Math.floor(amount / 20);
+                if (xpPerdido > 0) {
+                    db.usuarios[userId].xpTotal = Math.max(0, (db.usuarios[userId].xpTotal || 0) - xpPerdido);
+                }
+                
                 saveDB(db);
-                await message.reply(`🎡 Roleta Galáctica caiu em **${resultado}**!\n😞 Você perdeu ${amount.toLocaleString()} Orbs!`);
+                setCasinoCooldown(userId);
+                
+                const embed = new EmbedBuilder()
+                    .setColor(0xFF0000)
+                    .setTitle('🎡 Roleta Galáctica')
+                    .setDescription(`🎲 A roleta caiu em **${resultado}**!\n😞 **VOCÊ PERDEU!**`)
+                    .addFields(
+                        { name: '💰 Valor Apostado', value: `${amount.toLocaleString()} Orbs`, inline: true },
+                        { name: '💸 Perda', value: `-${amount.toLocaleString()} Orbs`, inline: true },
+                        { name: '💀 XP Perdido', value: `${xpPerdido} XP`, inline: true },
+                        { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    )
+                    .setFooter({ text: '🎰 Próxima jogada disponível em 5 horas!' });
+                
+                if (hasSorteBoost) {
+                    embed.addFields({ name: '🍀 Amuleto da Sorte', value: 'Ativo, mas a sorte não estava ao seu favor desta vez...', inline: false });
+                }
+                
+                await message.reply({ embeds: [embed] });
             }
         }
         
         else {
-            await message.reply('📦 **Nebula Crate** - Sistema de Caixas\n`bt!crate abrir` - Abrir uma Nebula Crate (2.000 Orbs)\n`bt!crate roleta <valor> <cor>` - Roleta Galáctica');
+            const embed = new EmbedBuilder()
+                .setColor(0x9B59B6)
+                .setTitle('📦 Nebula Crate - Sistema de Cassino')
+                .setDescription('🎰 **Jogos disponíveis** (cooldown de 5 horas entre jogadas)')
+                .addFields(
+                    { name: '📦 `bt!crate abrir`', value: 'Abre uma Nebula Crate (2.000 Orbs)\n🎁 Ganhe itens ou Orbs!', inline: false },
+                    { name: '🎡 `bt!crate roleta <valor> <cor>`', value: 'Jogue na Roleta Galáctica\n🟥 vermelho (2x) | ⚫ preto (2x) | 🟢 verde (14x)', inline: false },
+                    { name: '⏰ Cooldown', value: '⏱️ **5 horas** entre cada jogada (caixa ou roleta)', inline: false },
+                    { name: '✨ Boosts', value: '🍀 Amuleto da Sorte: melhores chances\n📈 Ação da Bolsa: +50% nos ganhos', inline: false }
+                )
+                .setFooter({ text: '🎰 Nebula Crate • Jogue com responsabilidade!' });
+            
+            await message.reply({ embeds: [embed] });
         }
     }
 };
