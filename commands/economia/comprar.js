@@ -43,10 +43,10 @@ module.exports = {
         const quantidade = parseInt(args[1]) || 1;
         
         if (!itemId || !itensLoja[itemId]) {
-            return message.reply('❌ ID inválido! Use `bt!galaxystore` para ver os itens.');
+            return message.reply('<:emoji_47:1504081397373997076> ID inválido! Use `bt!galaxystore` para ver os itens.');
         }
         
-        if (quantidade < 1) return message.reply('❌ Quantidade inválida!');
+        if (quantidade < 1) return message.reply('<:emoji_47:1504081397373997076> Quantidade inválida!');
         
         const item = itensLoja[itemId];
         const precoTotal = item.preco * quantidade;
@@ -61,7 +61,7 @@ module.exports = {
         const carteira = db.usuarios[userId].carteira || 0;
         
         if (carteira < precoTotal) {
-            return message.reply(`❌ Você precisa de **${precoTotal.toLocaleString()} Orbs**!`);
+            return message.reply(`<:emoji_47:1504081397373997076> Você precisa de **${precoTotal.toLocaleString()} Orbs**!`);
         }
         
         db.usuarios[userId].carteira = carteira - precoTotal;
