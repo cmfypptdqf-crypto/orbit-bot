@@ -68,7 +68,7 @@ module.exports = {
             db.usuarios[userId].inventario = inventario;
             saveDB(db);
             
-            await message.reply(`✅ Você craftou **${recipe.resultado.nome}** com sucesso! O item foi adicionado à sua mochila.`);
+            await message.reply(`<:emoji_46:1504081377291927632> Você craftou **${recipe.resultado.nome}** com sucesso! O item foi adicionado à sua mochila.`);
         }
         
         else {
