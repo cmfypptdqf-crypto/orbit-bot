@@ -109,6 +109,11 @@ function calcularDano(atk, def, crit, evasao, habilidade = null) {
             case 'Bola de Fogo': dano *= 1.5; break;
             case 'Chuva de Flechas': dano *= 1.3; break;
             case 'Tiro Preciso': dano *= 1.4; break;
+            case 'Defesa Total': dano *= 0.5; break;
+            case 'Escudo Arcano': dano *= 0.4; break;
+            case 'Grito de Guerra': dano *= 1.3; break;
+            case 'Veneno Mortal': dano *= 1.3; break;
+            case 'Cura Leve': dano = -50; break;
         }
     }
     
@@ -122,15 +127,15 @@ function calcularDano(atk, def, crit, evasao, habilidade = null) {
     };
 }
 
-async function criarBatalha(message, alvo, aposta, db) {
+async function criarBatalha(message, adversario, aposta, db) {
     const desafiante = message.author;
     const classeDesafiante = db.usuarios[desafiante.id]?.classe || 'guerreiro';
-    const classeAlvo = db.usuarios[alvo.id]?.classe || 'guerreiro';
+    const classeAdversario = db.usuarios[adversario.id]?.classe || 'guerreiro';
     
     const statsDesafiante = calcularStats(desafiante, db, getClasseInfo(classeDesafiante));
-    const statsAlvo = calcularStats(alvo, db, getClasseInfo(classeAlvo));
+    const statsAdversario = calcularStats(adversario, db, getClasseInfo(classeAdversario));
     
-    const battleId = `${desafiante.id}-${alvo.id}-${Date.now()}`;
+    const battleId = `${desafiante.id}-${adversario.id}-${Date.now()}`;
     const battle = {
         id: battleId,
         desafiante: {
@@ -141,10 +146,10 @@ async function criarBatalha(message, alvo, aposta, db) {
             ultimoAtaque: null
         },
         adversario: {
-            id: alvo.id,
-            username: alvo.username,
-            stats: statsAlvo,
-            hpAtual: statsAlvo.hp,
+            id: adversario.id,
+            username: adversario.username,
+            stats: statsAdversario,
+            hpAtual: statsAdversario.hp,
             ultimoAtaque: null
         },
         aposta,
@@ -165,11 +170,14 @@ function getHabilidadesButton(classe, battleId, isDesafiante) {
     const habilidades = classeInfo.habilidades.map((hab, index) => 
         new ButtonBuilder()
             .setCustomId(`pvp_habilidade_${battleId}_${isDesafiante ? 'desafiante' : 'adversario'}_${index}`)
-            .setLabel(hab)
+            .setLabel(hab.length > 25 ? hab.substring(0, 22) + '...' : hab)
             .setStyle(ButtonStyle.Primary)
     );
     
-    row.addComponents(...habilidades);
+    // Adicionar no máximo 5 botões por linha
+    if (habilidades.length > 0) {
+        row.addComponents(...habilidades.slice(0, 5));
+    }
     
     const atkBasico = new ButtonBuilder()
         .setCustomId(`pvp_atk_${battleId}_${isDesafiante ? 'desafiante' : 'adversario'}`)
@@ -210,6 +218,7 @@ module.exports = {
         const nivel = calcularNivel(db.usuarios[userId].xpTotal || 0);
         const classeAtual = db.usuarios[userId].classe || 'guerreiro';
         
+        // Comando: classe
         if (subcmd === 'classe') {
             const novaClasse = args[1]?.toLowerCase();
             const classes = ['guerreiro', 'mago', 'arqueiro', 'assassino', 'paladino'];
@@ -248,6 +257,7 @@ module.exports = {
             await message.reply({ embeds: [embed] });
         }
         
+        // Comando: desafiar
         else if (subcmd === 'desafiar') {
             const alvo = message.mentions.users.first();
             if (!alvo) return message.reply('❌ Use: `bt!pvp desafiar @usuario [aposta]`');
@@ -266,6 +276,18 @@ module.exports = {
             if (aposta < 100) return message.reply('❌ Aposta mínima é 100 Orbs!');
             if ((db.usuarios[userId].carteira || 0) < aposta) {
                 return message.reply(`❌ Você não tem ${aposta.toLocaleString()} Orbs para apostar!`);
+            }
+            
+            // Verificar se o alvo existe no banco
+            if (!db.usuarios[alvo.id]) {
+                db.usuarios[alvo.id] = { 
+                    xpTotal: 0, 
+                    pvpVitorias: 0, 
+                    pvpDerrotas: 0,
+                    classe: 'guerreiro',
+                    carteira: 5000
+                };
+                saveDB(db);
             }
             
             // Criar desafio
@@ -292,6 +314,7 @@ module.exports = {
             await message.reply({ embeds: [embed] });
         }
         
+        // Comando: aceitar
         else if (subcmd === 'aceitar') {
             const desafio = db.pvp[userId];
             if (!desafio) return message.reply('❌ Você não tem nenhum desafio pendente!');
@@ -317,8 +340,8 @@ module.exports = {
                 return message.reply(`❌ Você não tem ${aposta.toLocaleString()} Orbs para aceitar o desafio!`);
             }
             
-            // Criar batalha
-            const battle = await criarBatalha(message, desafiante, aposta, db);
+            // Criar batalha (quem aceitou é o adversário)
+            const battle = await criarBatalha(message, message.author, aposta, db);
             
             // Remover desafio
             delete db.pvp[userId];
@@ -343,7 +366,12 @@ module.exports = {
             collector.on('collect', async (interaction) => {
                 if (!interaction.customId.startsWith('pvp_')) return;
                 
-                const [_, action, battleId, side, habIndex] = interaction.customId.split('_');
+                const parts = interaction.customId.split('_');
+                const action = parts[1];
+                const battleId = parts[2];
+                const side = parts[3];
+                const habIndex = parts[4];
+                
                 const currentBattle = battles.get(battleId);
                 
                 if (!currentBattle) {
@@ -361,8 +389,8 @@ module.exports = {
                 const attacker = isDesafianteTurn ? currentBattle.desafiante : currentBattle.adversario;
                 const defender = isDesafianteTurn ? currentBattle.adversario : currentBattle.desafiante;
                 
+                // Desistir
                 if (action === 'desistir') {
-                    // Processar desistência
                     const vencedor = defender;
                     const perdedor = attacker;
                     
@@ -379,7 +407,7 @@ module.exports = {
                     saveDB(db);
                     battles.delete(battleId);
                     
-                    const embed = new EmbedBuilder()
+                    const embedDesistir = new EmbedBuilder()
                         .setColor(0xFF0000)
                         .setTitle('🏳️ BATALHA ENCERRADA!')
                         .setDescription(`${perdedor.username} desistiu da batalha!`)
@@ -389,19 +417,27 @@ module.exports = {
                             { name: '✨ XP Ganho', value: `${Math.floor(xpGanho)}`, inline: true }
                         );
                     
-                    await interaction.update({ embeds: [embed], components: [] });
+                    await interaction.update({ embeds: [embedDesistir], components: [] });
                     return;
                 }
                 
                 let danoCalculado;
                 let habilidadeUsada = null;
                 
+                // Ataque normal
                 if (action === 'atk') {
                     danoCalculado = calcularDano(attacker.stats.atk, defender.stats.def, attacker.stats.crit, defender.stats.evasao);
-                } else if (action === 'habilidade') {
+                } 
+                // Habilidade
+                else if (action === 'habilidade') {
                     const habIndexNum = parseInt(habIndex);
-                    const classeInfo = getClasseInfo(isDesafianteTurn ? db.usuarios[attacker.id]?.classe : db.usuarios[attacker.id]?.classe);
+                    const classeAtacante = db.usuarios[attacker.id]?.classe || 'guerreiro';
+                    const classeInfo = getClasseInfo(classeAtacante);
                     habilidadeUsada = classeInfo.habilidades[habIndexNum];
+                    
+                    if (!habilidadeUsada) {
+                        return interaction.reply({ content: '❌ Habilidade inválida!', ephemeral: true });
+                    }
                     
                     if (currentBattle.habilidadesUsadas.includes(`${attacker.id}_${habilidadeUsada}`)) {
                         return interaction.reply({ content: '❌ Você já usou essa habilidade nesta batalha!', ephemeral: true });
@@ -414,25 +450,41 @@ module.exports = {
                 // Verificar evasão
                 const evadiu = Math.random() * 100 < defender.stats.evasao;
                 
-                if (evadiu) {
-                    const embed = new EmbedBuilder()
+                if (evadiu && action !== 'desistir') {
+                    const embedEvasao = new EmbedBuilder()
                         .setColor(0xFFFF00)
                         .setTitle('💨 EVASÃO!')
                         .setDescription(`${defender.username} desviou do ataque de ${attacker.username}!`);
                     
-                    await interaction.update({ embeds: [embed] });
+                    await interaction.update({ embeds: [embedEvasao] });
                 } else {
-                    defender.hpAtual -= danoCalculado.dano;
-                    
-                    const embed = new EmbedBuilder()
-                        .setColor(danoCalculado.isCrit ? 0xFF0000 : 0xFFA500)
-                        .setTitle(habilidadeUsada ? `✨ ${habilidadeUsada}!` : '⚔️ ATAQUE!')
-                        .setDescription(`${attacker.username} atacou ${defender.username} e causou **${danoCalculado.dano}** de dano!${danoCalculado.isCrit ? ' **CRÍTICO!**' : ''}`)
-                        .addFields(
-                            { name: '❤️ HP do Defensor', value: `${Math.max(0, defender.hpAtual)}/${defender.stats.hpMax}`, inline: true }
-                        );
-                    
-                    await interaction.update({ embeds: [embed] });
+                    // Aplicar dano ou cura
+                    if (habilidadeUsada === 'Cura Leve') {
+                        const cura = Math.abs(danoCalculado.dano);
+                        attacker.hpAtual = Math.min(attacker.stats.hpMax, attacker.hpAtual + cura);
+                        
+                        const embedCura = new EmbedBuilder()
+                            .setColor(0x00FF00)
+                            .setTitle('💚 CURA!')
+                            .setDescription(`${attacker.username} usou ${habilidadeUsada} e recuperou **${cura}** de HP!`)
+                            .addFields(
+                                { name: '❤️ HP do Atacante', value: `${attacker.hpAtual}/${attacker.stats.hpMax}`, inline: true }
+                            );
+                        
+                        await interaction.update({ embeds: [embedCura] });
+                    } else {
+                        defender.hpAtual -= danoCalculado.dano;
+                        
+                        const embedAtaque = new EmbedBuilder()
+                            .setColor(danoCalculado.isCrit ? 0xFF0000 : 0xFFA500)
+                            .setTitle(habilidadeUsada ? `✨ ${habilidadeUsada}!` : '⚔️ ATAQUE!')
+                            .setDescription(`${attacker.username} atacou ${defender.username} e causou **${danoCalculado.dano}** de dano!${danoCalculado.isCrit ? ' **CRÍTICO!**' : ''}`)
+                            .addFields(
+                                { name: '❤️ HP do Defensor', value: `${Math.max(0, defender.hpAtual)}/${defender.stats.hpMax}`, inline: true }
+                            );
+                        
+                        await interaction.update({ embeds: [embedAtaque] });
+                    }
                 }
                 
                 // Verificar fim de batalha
@@ -472,20 +524,24 @@ module.exports = {
                 currentBattle.turnoNumero++;
                 battles.set(battleId, currentBattle);
                 
+                // Verificar se a batalha ainda existe
+                const updatedBattle = battles.get(battleId);
+                if (!updatedBattle) return;
+                
                 // Atualizar botões
-                const nextAttacker = currentBattle.turno === currentBattle.desafiante.id ? currentBattle.desafiante : currentBattle.adversario;
+                const nextAttacker = updatedBattle.turno === updatedBattle.desafiante.id ? updatedBattle.desafiante : updatedBattle.adversario;
                 const nextAttackerClasse = db.usuarios[nextAttacker.id]?.classe || 'guerreiro';
-                const nextSide = currentBattle.turno === currentBattle.desafiante.id ? 'desafiante' : 'adversario';
+                const nextSide = updatedBattle.turno === updatedBattle.desafiante.id ? 'desafiante' : 'adversario';
                 
                 const components = getHabilidadesButton(nextAttackerClasse, battleId, nextSide === 'desafiante');
                 
                 const turnEmbed = new EmbedBuilder()
                     .setColor(0x9B59B6)
-                    .setTitle(`⚔️ Turno ${currentBattle.turnoNumero}`)
+                    .setTitle(`⚔️ Turno ${updatedBattle.turnoNumero}`)
                     .setDescription(`🎭 **${nextAttacker.username}** é sua vez de atacar!`)
                     .addFields(
-                        { name: '❤️ Desafiante HP', value: `${currentBattle.desafiante.hpAtual}/${currentBattle.desafiante.stats.hpMax}`, inline: true },
-                        { name: '❤️ Adversário HP', value: `${currentBattle.adversario.hpAtual}/${currentBattle.adversario.stats.hpMax}`, inline: true }
+                        { name: '❤️ Desafiante HP', value: `${updatedBattle.desafiante.hpAtual}/${updatedBattle.desafiante.stats.hpMax}`, inline: true },
+                        { name: '❤️ Adversário HP', value: `${updatedBattle.adversario.hpAtual}/${updatedBattle.adversario.stats.hpMax}`, inline: true }
                     );
                 
                 await interaction.followUp({ embeds: [turnEmbed], components });
@@ -496,6 +552,7 @@ module.exports = {
             await msg.edit({ components });
         }
         
+        // Comando: rank
         else if (subcmd === 'rank') {
             const ranking = Object.entries(db.usuarios)
                 .map(([id, data]) => ({ 
@@ -516,8 +573,9 @@ module.exports = {
                 try {
                     const user = await client.users.fetch(ranking[i].id);
                     const classeInfo = getClasseInfo(ranking[i].classe);
-                    const winRate = ranking[i].vitorias + ranking[i].derrotas > 0 
-                        ? ((ranking[i].vitorias / (ranking[i].vitorias + ranking[i].derrotas)) * 100).toFixed(1)
+                    const totalBatalhas = ranking[i].vitorias + ranking[i].derrotas;
+                    const winRate = totalBatalhas > 0 
+                        ? ((ranking[i].vitorias / totalBatalhas) * 100).toFixed(1)
                         : 0;
                     
                     embed.addFields({
@@ -525,14 +583,18 @@ module.exports = {
                         value: `🏆 Vitórias: ${ranking[i].vitorias} | 📊 Winrate: ${winRate}%\n🎭 Classe: ${classeInfo.nome}`,
                         inline: false
                     });
-                } catch (e) {}
+                } catch (e) {
+                    console.error(`Erro ao buscar usuário ${ranking[i].id}:`, e);
+                }
             }
             await message.reply({ embeds: [embed] });
         }
         
+        // Comando: stats
         else if (subcmd === 'stats') {
             const stats = calcularStats(message.author, db, getClasseInfo(classeAtual));
-            const winRate = (stats.vitorias / (stats.vitorias + (db.usuarios[userId].pvpDerrotas || 0)) * 100).toFixed(1);
+            const totalBatalhas = stats.vitorias + (db.usuarios[userId].pvpDerrotas || 0);
+            const winRate = totalBatalhas > 0 ? ((stats.vitorias / totalBatalhas) * 100).toFixed(1) : 0;
             
             const embed = new EmbedBuilder()
                 .setColor(0x00CED1)
@@ -554,6 +616,7 @@ module.exports = {
             await message.reply({ embeds: [embed] });
         }
         
+        // Comando: ajuda
         else {
             const embed = new EmbedBuilder()
                 .setColor(0x9B59B6)
