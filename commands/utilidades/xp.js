@@ -31,7 +31,7 @@ module.exports = {
         const progresso = Math.floor((xpAtual / xpNecessario) * 100);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle(`✨ Stellar XP de ${message.author.username}`)
             .setThumbnail(message.author.displayAvatarURL())
             .addFields(
