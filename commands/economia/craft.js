@@ -47,16 +47,16 @@ module.exports = {
         else if (subcmd === 'fazer') {
             const nome = args.slice(1).join(' ');
             const recipe = Object.values(receitas).find(r => r.resultado.nome.toLowerCase().includes(nome.toLowerCase()));
-            if (!recipe) return message.reply('❌ Receita não encontrada! Use `bt!craft receitas`');
+            if (!recipe) return message.reply('<:emoji_47:1504081397373997076> Receita não encontrada! Use `bt!craft receitas`');
             
             const db = getDB();
             const userId = message.author.id;
             const inventario = db.usuarios[userId]?.inventario || {};
             
             for (const [id, qtd] of Object.entries(recipe.ingredientes)) {
-                if ((inventario[id] || 0) < qtd) return message.reply(`❌ Faltam ${qtd}x de ${nomesItens[id]}!`);
+                if ((inventario[id] || 0) < qtd) return message.reply(`<:emoji_47:1504081397373997076> Faltam ${qtd}x de ${nomesItens[id]}!`);
             }
-            if ((db.usuarios[userId]?.carteira || 0) < recipe.custo) return message.reply(`❌ Faltam ${recipe.custo.toLocaleString()} Orbs!`);
+            if ((db.usuarios[userId]?.carteira || 0) < recipe.custo) return message.reply(`<:emoji_47:1504081397373997076> Faltam ${recipe.custo.toLocaleString()} Orbs!`);
             
             for (const [id, qtd] of Object.entries(recipe.ingredientes)) {
                 inventario[id] -= qtd;
