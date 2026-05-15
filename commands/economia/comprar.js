@@ -79,7 +79,7 @@ module.exports = {
                 .setDescription(`Parabéns! Agora você é **Orbit Prime ${item.tier.toUpperCase()}** por ${item.dias} dias!`)
                 .addFields(
                     { name: '✨ Multiplicador', value: `${item.mult}x em todos ganhos`, inline: true },
-                    { name: '💰 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    { name: '<a:gcoin:1503617439202545757> Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
                 .setFooter({ text: '⭐ Orbit Prime • Benefícios exclusivos para exploradores' });
             saveDB(db);
@@ -95,8 +95,8 @@ module.exports = {
             .setTitle('<:emoji_46:1504081377291927632> Compra realizada!')
             .setDescription(`Você adquiriu **${quantidade}x ${item.nome}** na **Galaxy Store**!`)
             .addFields(
-                { name: '💰 Preço', value: `${precoTotal.toLocaleString()} Orbs`, inline: true },
-                { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                { name: '<a:gcoin:1503617439202545757> Preço', value: `${precoTotal.toLocaleString()} Orbs`, inline: true },
+                { name: '<a:gcoin:1503617439202545757> Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
             .setFooter({ text: '🛒 Galaxy Store • Obrigado pela compra!' });
         
