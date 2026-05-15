@@ -26,11 +26,11 @@ module.exports = {
         
         if (subcmd === 'abrir') {
             const amount = parseInt(args[1]) || 2000;
-            if (isNaN(amount) || amount < 2000) return message.reply('❌ Uma **Nebula Crate** custa 2.000 Orbs! Use `bt!crate abrir`');
+            if (isNaN(amount) || amount < 2000) return message.reply('<:emoji_47:1504081397373997076> Uma **Nebula Crate** custa 2.000 Orbs! Use `bt!crate abrir`');
             
             const db = getDB();
             if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
-            if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('❌ Saldo insuficiente para abrir uma **Nebula Crate**!');
+            if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente para abrir uma **Nebula Crate**!');
             
             const premios = [
                 { nome: '🔭 Telescópio Avançado', qtd: 1, valor: 500, raridade: 'Comum' },
@@ -62,12 +62,12 @@ module.exports = {
         else if (subcmd === 'roleta') {
             const amount = parseInt(args[1]);
             const cor = args[2]?.toLowerCase();
-            if (isNaN(amount) || amount <= 0) return message.reply('❌ Aposte um valor!');
-            if (!['vermelho', 'preto', 'verde'].includes(cor)) return message.reply('❌ Escolha: vermelho, preto ou verde');
+            if (isNaN(amount) || amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Aposte um valor!');
+            if (!['vermelho', 'preto', 'verde'].includes(cor)) return message.reply('<:emoji_47:1504081397373997076> Escolha: vermelho, preto ou verde');
             
             const db = getDB();
             if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
-            if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('❌ Saldo insuficiente!');
+            if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente!');
             
             const resultado = ['vermelho', 'preto', 'verde'][Math.floor(Math.random() * 3)];
             const multiplicador = cor === 'verde' ? 14 : 2;
