@@ -59,6 +59,11 @@ function getBoostMultiplier(userId, db) {
     return multiplier;
 }
 
+// Função para ganhar XP aleatório entre 50 e 300
+function ganharXPaleatorio() {
+    return Math.floor(Math.random() * (300 - 50 + 1) + 50);
+}
+
 module.exports = {
     name: 'cassino',
     aliases: ['roleta', 'caçaniquel', 'crate'],
@@ -110,21 +115,19 @@ module.exports = {
             db.usuarios[userId].carteira -= amount;
             
             let mensagem = '';
-            let xpGanho = 0;
+            let xpGanho = ganharXPaleatorio(); // XP aleatório entre 50-300
             
             if (premio.isMoney) {
                 db.usuarios[userId].carteira += premio.qtd;
                 mensagem = `📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.qtd.toLocaleString()} Orbs**!`;
-                xpGanho = calcularXPporGanho(premio.qtd);
             } else {
                 if (!db.usuarios[userId].inventario) db.usuarios[userId].inventario = {};
                 const itemId = { '🔭 Telescópio Avançado': '1', '🚀 Nave Explorer': '2', '💍 Anel Cósmico': '3', '🛡️ Escudo Energético': '4', '🍀 Amuleto da Sorte': '11', '⭐ Orbit Prime Bronze': '7' }[premio.nome] || '1';
                 db.usuarios[userId].inventario[itemId] = (db.usuarios[userId].inventario[itemId] || 0) + premio.qtd;
                 mensagem = `📦 **Nebula Crate** aberta!\n✨ Parabéns! Você encontrou **${premio.nome}**!`;
-                xpGanho = calcularXPporGanho(premio.valor);
             }
             
-            // Adicionar XP
+            // Adicionar XP (sempre ganha, nunca perde)
             const resultadoXP = adicionarXP(userId, xpGanho, 'cassino_crate');
             
             saveDB(db);
@@ -189,14 +192,16 @@ module.exports = {
             // Aplicar boost de ganhos
             const boostMultiplier = getBoostMultiplier(userId, db);
             
+            // XP aleatório entre 50 e 300 (sempre ganha)
+            const xpGanho = ganharXPaleatorio();
+            
             if (ganhou) {
                 let ganho = amount * multiplicador;
                 ganho = Math.floor(ganho * boostMultiplier);
                 
                 db.usuarios[userId].carteira += ganho;
                 
-                // Adicionar XP
-                const xpGanho = calcularXPporGanho(ganho);
+                // Adicionar XP (sempre ganha, nunca perde)
                 const resultadoXP = adicionarXP(userId, xpGanho, 'cassino_roleta');
                 
                 saveDB(db);
@@ -231,11 +236,8 @@ module.exports = {
             } else {
                 db.usuarios[userId].carteira -= amount;
                 
-                // Perde um pouco de XP
-                const xpPerdido = Math.floor(amount / 20);
-                if (xpPerdido > 0) {
-                    db.usuarios[userId].xpTotal = Math.max(0, (db.usuarios[userId].xpTotal || 0) - xpPerdido);
-                }
+                // NÃO perde XP! Apenas ganha XP normal (50-300)
+                const resultadoXP = adicionarXP(userId, xpGanho, 'cassino_roleta_perdeu');
                 
                 saveDB(db);
                 setCasinoCooldown(userId);
@@ -247,13 +249,17 @@ module.exports = {
                     .addFields(
                         { name: '💰 Valor Apostado', value: `${amount.toLocaleString()} Orbs`, inline: true },
                         { name: '💸 Perda', value: `-${amount.toLocaleString()} Orbs`, inline: true },
-                        { name: '💀 XP Perdido', value: `${xpPerdido} XP`, inline: true },
+                        { name: '⭐ Stellar XP', value: `+${xpGanho} XP (participação)`, inline: true },
                         { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                     )
                     .setFooter({ text: '🎰 Próxima jogada disponível em 5 horas!' });
                 
                 if (hasSorteBoost) {
                     embed.addFields({ name: '🍀 Amuleto da Sorte', value: 'Ativo, mas a sorte não estava ao seu favor desta vez...', inline: false });
+                }
+                
+                if (resultadoXP.levelUp) {
+                    embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
                 }
                 
                 await message.reply({ embeds: [embed] });
@@ -269,7 +275,8 @@ module.exports = {
                     { name: '📦 `bt!crate abrir`', value: 'Abre uma Nebula Crate (2.000 Orbs)\n🎁 Ganhe itens ou Orbs!', inline: false },
                     { name: '🎡 `bt!crate roleta <valor> <cor>`', value: 'Jogue na Roleta Galáctica\n🟥 vermelho (2x) | ⚫ preto (2x) | 🟢 verde (14x)', inline: false },
                     { name: '⏰ Cooldown', value: '⏱️ **5 horas** entre cada jogada (caixa ou roleta)', inline: false },
-                    { name: '✨ Boosts', value: '🍀 Amuleto da Sorte: melhores chances\n📈 Ação da Bolsa: +50% nos ganhos', inline: false }
+                    { name: '✨ Boosts', value: '🍀 Amuleto da Sorte: melhores chances\n📈 Ação da Bolsa: +50% nos ganhos', inline: false },
+                    { name: '⭐ XP', value: '🎯 Sempre ganha entre **50 a 300 XP** por jogada!', inline: false }
                 )
                 .setFooter({ text: '🎰 Nebula Crate • Jogue com responsabilidade!' });
             
