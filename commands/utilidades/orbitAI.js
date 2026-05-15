@@ -55,4 +55,4 @@ function getOrbitResponse(acao) {
 
 
 
-module.exports = { getRandomFrase, checkRandomEvent, processEvent, getOrbitResponse, getComandoFrase };
+module.exports = { getRandomFrase, checkRandomEvent, processEvent, getOrbitResponse };
