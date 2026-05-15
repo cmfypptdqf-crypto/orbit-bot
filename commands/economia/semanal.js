@@ -49,7 +49,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`<:emoji_45:1504081355703586866> ${getRandomFrase('sucesso')}`)
+            .setTitle(`<:emoji_45:1504081355703586866> sucesso`)
             .setDescription(`<a:h_checkazul:1503775331163705614> Bônus semanal recebido!`)
             .addFields(
                 { name: '💰 Bônus', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
