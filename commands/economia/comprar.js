@@ -92,7 +92,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle('✅ Compra realizada!')
+            .setTitle('<:emoji_46:1504081377291927632> Compra realizada!')
             .setDescription(`Você adquiriu **${quantidade}x ${item.nome}** na **Galaxy Store**!`)
             .addFields(
                 { name: '💰 Preço', value: `${precoTotal.toLocaleString()} Orbs`, inline: true },
