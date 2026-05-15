@@ -50,7 +50,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle(`<a:h_checkazul:1503775331163705614> ('sucesso')}`)
+            .setTitle(`<a:h_checkazul:1503775331163705614> sucesso`)
             .setDescription(`📡 Você transferiu **${amount.toLocaleString()} Orbs** para o **Orbital Bank**!`)
             .addFields(
                 { name: '<a:gcoin:1503617439202545757> Nucleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
