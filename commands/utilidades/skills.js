@@ -41,7 +41,7 @@ module.exports = {
         
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('⭐ Habilidades Disponíveis')
                 .setDescription('Use `bt!skills comprar <habilidade>` para adquirir');
             
@@ -78,7 +78,7 @@ module.exports = {
             const lista = Object.keys(userSkills).map(id => skills[id].nome).join('\n');
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle(`⭐ Habilidades de ${message.author.username}`)
                 .setDescription(lista || 'Nenhuma habilidade adquirida ainda.');
             await message.reply({ embeds: [embed] });
