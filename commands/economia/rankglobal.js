@@ -46,7 +46,7 @@ module.exports = {
         if (top10.length === 0) return message.reply('📊 Nenhum usuário tem Orbs ainda!');
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
+            .setColor(0x00008B)
             .setTitle('🏆 Stellar Leaderboard')
             .setDescription(`Os maiores exploradores do universo!\n📊 Total: ${ranking.length} exploradores`)
             .setThumbnail(message.guild.iconURL());
