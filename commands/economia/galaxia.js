@@ -86,7 +86,7 @@ module.exports = {
             clan.conquistas.push(`🌌 Conquistou ${galaxia.nome} em ${new Date().toLocaleDateString()}`);
             saveDB(db);
             
-            await message.reply(`✅ **${clan.nome}** conquistou a ${galaxia.nome}! Agora todos os membros ganham +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs!`);
+            await message.reply(`<:emoji_46:1504081377291927632> **${clan.nome}** conquistou a ${galaxia.nome}! Agora todos os membros ganham +${Math.round((galaxia.bonus.carteira - 1) * 100)}% Orbs!`);
         }
         
         else if (subcmd === 'bonus') {
