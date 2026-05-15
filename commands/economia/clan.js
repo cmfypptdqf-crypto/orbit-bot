@@ -72,7 +72,7 @@ module.exports = {
             }
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700).setTitle(`🚀 Star Federation: ${clan.nome}`)
+                .setColor(0x00008B).setTitle(`🚀 Star Federation: ${clan.nome}`)
                 .addFields(
                     { name: '👑 Líder', value: `<@${clan.dono}>`, inline: true },
                     { name: '📊 Nível', value: `${clan.level}`, inline: true },
@@ -210,7 +210,7 @@ module.exports = {
             if (ranking.length === 0) return message.reply('📊 Nenhuma Star Federation foi criada ainda!');
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700).setTitle('🏆 Ranking Star Federation');
+                .setColor(0x00008B).setTitle('🏆 Ranking Star Federation');
             
             for (let i = 0; i < ranking.length; i++) {
                 const clan = ranking[i];
@@ -225,7 +225,7 @@ module.exports = {
         
         else {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🚀 Star Federation')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
