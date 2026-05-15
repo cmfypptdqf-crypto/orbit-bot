@@ -49,7 +49,7 @@ module.exports = {
         for (const [_, qtd] of itensLista) totalItens += qtd;
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle(`🎒 Mochila de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .setDescription(`📦 **${totalItens} itens** no total`);
