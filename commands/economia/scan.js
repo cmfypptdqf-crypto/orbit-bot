@@ -58,7 +58,7 @@ module.exports = {
         cooldownsManager.set(userId, 'search');
         
         const embed = new EmbedBuilder()
-            .setColor(local.cor)
+            .setColor(0x00008B)
             .setTitle('🔍 Exploração Espacial')
             .setDescription(`📡 Sondando: **${local.nome}**`)
             .addFields(
