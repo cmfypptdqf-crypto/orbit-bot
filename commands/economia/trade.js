@@ -73,7 +73,7 @@ module.exports = {
             
             delete db.trades[tradeId];
             saveDB(db);
-            await message.reply(`✅ Troca concluída com sucesso!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Troca concluída com sucesso!`);
         }
         
         else {
