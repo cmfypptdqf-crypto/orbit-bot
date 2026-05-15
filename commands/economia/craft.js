@@ -32,7 +32,7 @@ module.exports = {
         
         if (subcmd === 'receitas') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🔧 Sistema de Crafting')
                 .setDescription('Fabrique itens poderosos na **Galaxy Store**!');
             
