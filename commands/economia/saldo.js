@@ -56,7 +56,7 @@ module.exports = {
         const barraProgresso = gerarBarraProgresso(progresso, 20);
         
         const embed = new EmbedBuilder()
-            .setColor(isVip ? 0xFFD700 : 0x00BFFF)
+            .setColor(isVip ? 0x00008B : 0x00008B)
             .setTitle(`📡 ${user.username}`)
             .setDescription(`✨ **${titulo}**`)
             .setThumbnail(user.displayAvatarURL())
