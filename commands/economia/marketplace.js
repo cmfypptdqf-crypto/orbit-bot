@@ -42,7 +42,7 @@ module.exports = {
             db.marketItems.push({ id: Date.now(), itemId, seller: userId, preco });
             inventario[itemId]--;
             saveDB(db);
-            await message.reply(`✅ Item ${nomesItens[itemId] || itemId} listado no **Void Market** por ${preco} Orbs!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Item ${nomesItens[itemId] || itemId} listado no **Void Market** por ${preco} Orbs!`);
         }
         
         else if (subcmd === 'listar') {
@@ -76,7 +76,7 @@ module.exports = {
             const index = db.marketItems.findIndex(i => i.id === marketId);
             db.marketItems.splice(index, 1);
             saveDB(db);
-            await message.reply(`✅ Compra realizada no **Void Market**! Você recebeu ${nomesItens[item.itemId] || item.itemId}!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Compra realizada no **Void Market**! Você recebeu ${nomesItens[item.itemId] || item.itemId}!`);
         }
         
         else {
