@@ -33,17 +33,17 @@ module.exports = {
         let carteira = db.usuarios[userId].carteira || 0;
         let banco = db.usuarios[userId].banco || 0;
         
-        if (!amount) return message.reply('❌ Use: `bt!depositar <valor>` ou `bt!depositar all`');
+        if (!amount) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!depositar <valor>` ou `bt!depositar all`');
         
         if (amount.toLowerCase() === 'all') {
             amount = carteira;
         } else {
             amount = parseInt(amount);
-            if (isNaN(amount)) return message.reply('❌ Digite um número válido!');
+            if (isNaN(amount)) return message.reply('<:emoji_47:1504081397373997076> Digite um número válido!');
         }
         
-        if (amount <= 0) return message.reply('❌ Digite um valor positivo!');
-        if (amount > carteira) return message.reply(`❌ Você só tem ${carteira.toLocaleString()} Orbs!`);
+        if (amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Digite um valor positivo!');
+        if (amount > carteira) return message.reply(`<:emoji_47:1504081397373997076> Você só tem ${carteira.toLocaleString()} Orbs!`);
         
         db.usuarios[userId].carteira = carteira - amount;
         db.usuarios[userId].banco = banco + amount;
