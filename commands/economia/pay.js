@@ -45,9 +45,9 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
             .setTitle('<a:h_checkazul:1503775331163705614> Transferência realizada!')
-            .setDescription(`📡 ${message.author} pagou **${amount.toLocaleString()} Orbs** para ${user}`)
-            .addFields({ name: '💵 Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true })
-            .setFooter({ text: '💸 Transação concluída com sucesso!' });
+            .setDescription(`${message.author} pagou **${amount.toLocaleString()} Orbs** para ${user}`)
+            .addFields({ name: '<a:gcoin:1503617439202545757> Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true })
+            .setFooter({ text: '<:emoji_50:1504077599222267925> Transação concluída com sucesso!' });
         
         await message.reply({ embeds: [embed] });
     }
