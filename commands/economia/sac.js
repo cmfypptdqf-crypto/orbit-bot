@@ -2,7 +2,6 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { getRandomFrase } = require('../utilidades/orbitAI.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -51,7 +50,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`<a:h_checkazul:1503775331163705614> ${getRandomFrase('sucesso')}`)
+            .setTitle(`<a:h_checkazul:1503775331163705614> sucesso`)
             .setDescription(`Você sacou **${amount.toLocaleString()} Orbs** do **Orbital Bank**!`)
             .addFields(
                 { name: '<a:gcoin:1503617439202545757> Carteira', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
