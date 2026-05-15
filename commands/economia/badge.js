@@ -36,7 +36,7 @@ module.exports = {
         const pendentes = todasBadges.filter(b => !b.requisito(db.usuarios[userId]));
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
+            .setColor(0x00008B)
             .setTitle(`🏆 Conquistas de ${message.author.username}`)
             .setDescription(`📊 Progresso: ${conquistadas.length}/${todasBadges.length}`)
             .setThumbnail(message.author.displayAvatarURL());
