@@ -26,9 +26,9 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `bt!pirataria @usuario`');
-        if (user.id === message.author.id) return message.reply('❌ Não pode atacar a si mesmo!');
-        if (user.bot) return message.reply('❌ Não pode roubar um bot!');
+        if (!user) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!pirataria @usuario`');
+        if (user.id === message.author.id) return message.reply('<:emoji_47:1504081397373997076> Não pode atacar a si mesmo!');
+        if (user.bot) return message.reply('<:emoji_47:1504081397373997076> Não pode roubar um bot!');
         
         const userId = message.author.id;
         const targetId = user.id;
@@ -43,7 +43,7 @@ module.exports = {
         if (!db.usuarios[targetId]) db.usuarios[targetId] = { carteira: 0, banco: 0, inventario: {} };
         
         const vitimaOrbs = db.usuarios[targetId].carteira || 0;
-        if (vitimaOrbs <= 0) return message.reply(`❌ ${user.username} está sem Orbs!`);
+        if (vitimaOrbs <= 0) return message.reply(`<:emoji_47:1504081397373997076> ${user.username} está sem Orbs!`);
         
         const bonusAtaque = calcularBonusTotal(userId, 'ataque');
         let chanceSucesso = Math.min(0.7, 0.4 * bonusAtaque.bonus);
