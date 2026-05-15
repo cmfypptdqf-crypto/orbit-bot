@@ -48,7 +48,7 @@ module.exports = {
         cooldownsManager.set(userId, 'weekly');
         
         const embed = new EmbedBuilder()
-            .setColor(0x9B59B6)
+            .setColor(0x00008B)
             .setTitle(`📅 ${getRandomFrase('sucesso')}`)
             .setDescription(`🎉 Bônus semanal recebido!`)
             .addFields(
