@@ -42,7 +42,7 @@ module.exports = {
         
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🌌 Cosmic Dominion')
                 .setDescription('Domine uma galáxia para ganhar bônus para sua **Star Federation**!\nUse `bt!cosmic conquistar <nome>` para atacar.')
                 .setThumbnail(message.guild.iconURL());
@@ -95,7 +95,7 @@ module.exports = {
             
             const galaxia = galaxias[clan.galaxiaAtual];
             const embed = new EmbedBuilder()
-                .setColor(galaxia.cor)
+                .setColor(0x00008B)
                 .setTitle(`✨ Cosmic Dominion - Bônus da ${clan.nome}`)
                 .setDescription(`Graças a ${galaxia.nome}, sua **Star Federation** ganha:`)
                 .addFields({ name: '💰 Bônus de Orbs', value: `+${Math.round((galaxia.bonus.carteira - 1) * 100)}% em todos os ganhos`, inline: false })
@@ -112,7 +112,7 @@ module.exports = {
             
             if (ranking.length === 0) return message.reply('📊 Nenhuma Star Federation domina uma galáxia!');
             
-            const embed = new EmbedBuilder().setColor(0xFFD700).setTitle('🏆 Ranking Cosmic Dominion');
+            const embed = new EmbedBuilder().setColor(0x00008B).setTitle('🏆 Ranking Cosmic Dominion');
             for (let i = 0; i < ranking.length; i++) {
                 const c = ranking[i];
                 const g = galaxias[c.galaxiaAtual];
@@ -123,7 +123,7 @@ module.exports = {
         
         else {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🌌 Cosmic Dominion')
                 .setDescription('Comandos: `listar`, `conquistar`, `bonus`, `ranking`')
                 .setFooter({ text: '🌌 Cosmic Dominion • Domine territórios e ganhe bônus' });
