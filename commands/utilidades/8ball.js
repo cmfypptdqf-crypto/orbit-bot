@@ -21,7 +21,7 @@ module.exports = {
         const resposta = respostas[Math.floor(Math.random() * respostas.length)];
         
         const embed = new EmbedBuilder()
-            .setColor(0x9B59B6)
+            .setColor(0x00008B)
             .setTitle('🎱 Bola Mágica Cósmica')
             .setDescription(`📡 Pergunta: *${pergunta}*\n\n✨ Resposta: **${resposta}**`)
             .setFooter({ text: '🌌 Orbit • O universo te responde' });
