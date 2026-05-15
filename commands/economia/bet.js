@@ -24,13 +24,13 @@ module.exports = {
         const amount = parseInt(args[0]);
         const escolha = args[1]?.toLowerCase();
         
-        if (isNaN(amount) || amount <= 0) return message.reply('❌ Use: `bt!bet <valor> <cara/coroa>`');
-        if (!['cara', 'coroa'].includes(escolha)) return message.reply('❌ Escolha "cara" ou "coroa"');
+        if (isNaN(amount) || amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!bet <valor> <cara/coroa>`');
+        if (!['cara', 'coroa'].includes(escolha)) return message.reply('<:emoji_47:1504081397373997076> Escolha "cara" ou "coroa"');
         
         const userId = message.author.id;
         const db = getDB();
         if (!db.usuarios[userId]) db.usuarios[userId] = { carteira: 0 };
-        if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('❌ Saldo insuficiente!');
+        if ((db.usuarios[userId].carteira || 0) < amount) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente!');
         
         const resultado = Math.random() < 0.5 ? 'cara' : 'coroa';
         const ganhou = escolha === resultado;
