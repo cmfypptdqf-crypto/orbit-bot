@@ -53,15 +53,15 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`📆 ${getRandomFrase('sucesso')}`)
+            .setTitle(`<:emoji_45:1504081355703586866> ${getRandomFrase('sucesso')}`)
             .setDescription(`📡 Bônus diário recebido!`)
             .addFields(
-                { name: '💰 Bônus Base', value: `${bonusBase.toLocaleString()} Orbs`, inline: true },
+                { name: '<a:gcoin:1503617439202545757> Bônus Base', value: `${bonusBase.toLocaleString()} Orbs`, inline: true },
                 { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
                 { name: '🎁 Total', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
                 { name: '⭐ Stellar XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true }
             )
-            .setFooter({ text: '📆 Volte amanhã para mais Stellar XP!' });
+            .setFooter({ text: '<:emoji_45:1504081355703586866> Volte amanhã para mais Stellar XP!' });
         
         if (eventoResultado) {
             embed.addFields({ name: '🎲 EVENTO!', value: eventoResultado.mensagem, inline: false });
