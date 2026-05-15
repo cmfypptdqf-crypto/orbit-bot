@@ -33,11 +33,11 @@ module.exports = {
         if (subcmd === 'vender') {
             const itemId = args[1];
             const preco = parseInt(args[2]);
-            if (!itemId || !preco) return message.reply('❌ Use: `bt!voidmarket vender <id> <preco>`');
+            if (!itemId || !preco) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!voidmarket vender <id> <preco>`');
             
             const userId = message.author.id;
             const inventario = db.usuarios[userId]?.inventario || {};
-            if (!inventario[itemId]) return message.reply('❌ Você não possui este item!');
+            if (!inventario[itemId]) return message.reply('<:emoji_47:1504081397373997076> Você não possui este item!');
             
             db.marketItems.push({ id: Date.now(), itemId, seller: userId, preco });
             inventario[itemId]--;
@@ -62,11 +62,11 @@ module.exports = {
         else if (subcmd === 'comprar') {
             const marketId = parseInt(args[1]);
             const item = db.marketItems.find(i => i.id === marketId);
-            if (!item) return message.reply('❌ Item não encontrado no **Void Market**!');
+            if (!item) return message.reply('<:emoji_47:1504081397373997076> Item não encontrado no **Void Market**!');
             
             const userId = message.author.id;
-            if ((db.usuarios[userId]?.carteira || 0) < item.preco) return message.reply('❌ Saldo insuficiente!');
-            if (userId === item.seller) return message.reply('❌ Não pode comprar seus próprios itens!');
+            if ((db.usuarios[userId]?.carteira || 0) < item.preco) return message.reply('<:emoji_47:1504081397373997076> Saldo insuficiente!');
+            if (userId === item.seller) return message.reply('<:emoji_47:1504081397373997076> Não pode comprar seus próprios itens!');
             
             db.usuarios[userId].carteira -= item.preco;
             db.usuarios[item.seller].carteira += item.preco;
