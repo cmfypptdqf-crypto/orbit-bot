@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { calcularBonusTotal } = require('../utilidades/galaxiaBonus.js');
-const { calcularNivel, xpParaProximoNivel, xpAtualNoNivel, getTituloPorNivel } = require('../utilidades/levelSystem.js');
+const { calcularNivel, xpParaProximoNivel, xpAtualNoNivel, getTituloPorNivel } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
