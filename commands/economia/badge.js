@@ -37,8 +37,8 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`🏆 Conquistas de ${message.author.username}`)
-            .setDescription(`📊 Progresso: ${conquistadas.length}/${todasBadges.length}`)
+            .setTitle(`<a:f_primeirolugar:1503775329322270860> Conquistas de ${message.author.username}`)
+            .setDescription(`<a:acarregandogifs:1503775465528234145> Progresso: ${conquistadas.length}/${todasBadges.length}`)
             .setThumbnail(message.author.displayAvatarURL());
         
         if (conquistadas.length > 0) {
@@ -46,7 +46,7 @@ module.exports = {
         }
         
         if (pendentes.length > 0) {
-            embed.addFields({ name: '🔒 PRÓXIMAS', value: pendentes.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
+            embed.addFields({ name: '<:emoji_49:1504081452864639118> PRÓXIMAS', value: pendentes.map(b => `**${b.nome}**\n📝 ${b.desc}`).join('\n\n'), inline: false });
         }
         
         embed.setFooter({ text: 'Complete desafios para ganhar XP e conquistas!' });
