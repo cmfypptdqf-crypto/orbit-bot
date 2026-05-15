@@ -91,7 +91,7 @@ module.exports = {
         saveDB(db);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle('✅ Compra realizada!')
             .setDescription(`Você adquiriu **${quantidade}x ${item.nome}** na **Galaxy Store**!`)
             .addFields(
