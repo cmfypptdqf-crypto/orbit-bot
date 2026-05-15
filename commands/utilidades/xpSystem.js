@@ -1,8 +1,8 @@
-// utils/xpSystem.js
+
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '..', 'database.json');
+const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
@@ -15,7 +15,6 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-// Adicionar XP a um usuário
 function adicionarXP(userId, quantidade, source = 'desconhecido') {
     const db = getDB();
     
@@ -27,7 +26,6 @@ function adicionarXP(userId, quantidade, source = 'desconhecido') {
     const novoXP = xpAnterior + quantidade;
     db.usuarios[userId].xpTotal = novoXP;
     
-    // Verificar level up
     const nivelAntigo = calcularNivel(xpAnterior);
     const nivelNovo = calcularNivel(novoXP);
     
@@ -41,30 +39,25 @@ function adicionarXP(userId, quantidade, source = 'desconhecido') {
     };
 }
 
-// Calcular nível baseado no XP total
 function calcularNivel(xpTotal) {
     if (xpTotal <= 0) return 1;
     const nivel = Math.floor(Math.sqrt(xpTotal / 100)) + 1;
     return Math.min(100, Math.max(1, nivel));
 }
 
-// Calcular XP necessário para o próximo nível
 function xpParaProximoNivel(nivelAtual) {
     return 100 * Math.pow(nivelAtual, 2);
 }
 
-// Calcular XP atual no nível
 function xpAtualNoNivel(xpTotal, nivelAtual) {
     const xpNecessarioAnterior = nivelAtual > 1 ? 100 * Math.pow(nivelAtual - 1, 2) : 0;
     return xpTotal - xpNecessarioAnterior;
 }
 
-// Regra: 10% do ganho em Orbs vira XP (mínimo 1 XP)
 function calcularXPporGanho(ganhoOrbs) {
     return Math.max(1, Math.floor(ganhoOrbs / 10));
 }
 
-// Adicionando a função que estava faltando
 function getTituloPorNivel(nivel) {
     if (nivel < 5) return '🌑 Viajante Espacial';
     if (nivel < 10) return '🌟 Explorador Estelar';
@@ -82,5 +75,5 @@ module.exports = {
     xpParaProximoNivel, 
     xpAtualNoNivel,
     calcularXPporGanho,
-    getTituloPorNivel  // Exportando a nova função
+    getTituloPorNivel
 };
