@@ -107,3 +107,23 @@ module.exports = {
         }
         
         else if (subcmd === 'lista') {
+            const embed = new EmbedBuilder()
+                .setColor(0xFFD700)
+                .setTitle('👾 Bosses Diários')
+                .setDescription('Use `bt!boss enfrentar <id>` para desafiar um boss!');
+            
+            for (const [id, boss] of Object.entries(bossesDiarios)) {
+                embed.addFields({
+                    name: `${id} - ${boss.nome}`,
+                    value: `🩸 HP: ${boss.hp.toLocaleString()} | 💰 Recompensa: ${boss.recompensa} Orbs | 🎯 Nível ${boss.nivelMin}+ | ⏰ Cooldown: ${boss.cooldown}h`,
+                    inline: false
+                });
+            }
+            await message.reply({ embeds: [embed] });
+        }
+        
+        else {
+            await message.reply('👾 **Sistema de Boss Diário**\n`bt!boss lista` - Ver bosses\n`bt!boss enfrentar <id>` - Enfrentar boss\n`bt!boss atacar` - Atacar\n`bt!boss status` - Ver status');
+        }
+    }
+};
