@@ -27,14 +27,14 @@ module.exports = {
         const member = message.member;
         
         if (!member.roles.cache.has(CARGO_PERMITIDO_ID)) {
-            return message.reply(`❌ Você não tem permissão para usar este comando!\n📌 Apenas membros com o cargo <@&${CARGO_PERMITIDO_ID}> podem adicionar orbs.`);
+            return message.reply(`<:emoji_47:1504081397373997076> Você não tem permissão para usar este comando!\n📌 Apenas membros com o cargo <@&${CARGO_PERMITIDO_ID}> podem adicionar orbs.`);
         }
         
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `bt!addorbs @user <quantia>`');
+        if (!user) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!addorbs @user <quantia>`');
         
         const amount = parseInt(args[1]);
-        if (isNaN(amount) || amount <= 0) return message.reply('❌ Digite um valor válido!');
+        if (isNaN(amount) || amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Digite um valor válido!');
         
         const db = getDB();
         const userId = user.id;
