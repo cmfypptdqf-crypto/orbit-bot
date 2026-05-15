@@ -131,4 +131,20 @@ module.exports = {
                 if (!missao) return message.reply('❌ Missão não encontrada!');
                 
                 const progresso = userData.missoesSemanais?.[missaoId] || 0;
-                if (progresso < missao.alvo) return message.re
+                if (progresso < missao.alvo) return message.reply('❌ Você ainda não completou esta missão!');
+                if (userData.missoesSemanaisColetadas?.includes(missaoId)) return message.reply('❌ Você já coletou esta recompensa!');
+                
+                userData.carteira += missao.recompensa;
+                if (!userData.missoesSemanaisColetadas) userData.missoesSemanaisColetadas = [];
+                userData.missoesSemanaisColetadas.push(missaoId);
+                saveDB(db);
+                
+                await message.reply(`✅ Você recebeu **${missao.recompensa} Orbs** pela missão semanal **${missao.nome}**!`);
+            }
+        }
+        
+        else {
+            await message.reply('📅 **Missões Diárias/Semanais**\n`bt!missaodiaria diaria` - Ver missões diárias\n`bt!missaodiaria semanal` - Ver missões semanais\n`bt!missaodiaria recompensa <diaria/semanal> <id>` - Coletar recompensa');
+        }
+    }
+};
