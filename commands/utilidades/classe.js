@@ -17,14 +17,17 @@ function saveDB(data) {
 }
 
 const classes = {
-    'guerreiro': { nome: '⚔️ Guerreiro', bonus: { ataque: 1.2, defesa: 1.1 }, preco: 10000, nivelMin: 10 },
-    'mago': { nome: '🔮 Mago', bonus: { xp: 1.2, sorte: 1.1 }, preco: 10000, nivelMin: 10 },
-    'arqueiro': { nome: '🏹 Arqueiro', bonus: { precisao: 1.2, velocidade: 1.1 }, preco: 10000, nivelMin: 10 },
-    'assassino': { nome: '🗡️ Assassino', bonus: { critico: 1.3, esquiva: 1.1 }, preco: 15000, nivelMin: 20 },
-    'paladino': { nome: '🛡️ Paladino', bonus: { defesa: 1.3, cura: 1.2 }, preco: 15000, nivelMin: 20 },
-    'necromante': { nome: '💀 Necromante', bonus: { vida: 1.2, ataque: 1.15 }, preco: 20000, nivelMin: 30 },
-    'druida': { nome: '🌿 Druida', bonus: { natureza: 1.2, sorte: 1.2 }, preco: 20000, nivelMin: 30 }
+    'guerreiro': { nome: '⚔️ Guerreiro', bonus: { ataque: 1.20, defesa: 1.10 }, preco: 10000, nivelMin: 10, cor: '#E74C3C' },
+    'mago': { nome: '🔮 Mago', bonus: { xp: 1.20, critico: 1.10 }, preco: 10000, nivelMin: 10, cor: '#9B59B6' },
+    'arqueiro': { nome: '🏹 Arqueiro', bonus: { precisao: 1.15, velocidade: 1.15 }, preco: 10000, nivelMin: 10, cor: '#2ECC71' },
+    'assassino': { nome: '🗡️ Assassino', bonus: { roubo: 1.25, critico: 1.20 }, preco: 15000, nivelMin: 20, cor: '#34495E' },
+    'paladino': { nome: '🛡️ Paladino', bonus: { defesa: 1.30, cura: 1.20 }, preco: 15000, nivelMin: 20, cor: '#F1C40F' }
 };
+
+function calcularNivel(xpTotal) {
+    if (xpTotal <= 0) return 1;
+    return Math.min(100, Math.floor(Math.sqrt(xpTotal / 100)) + 1);
+}
 
 module.exports = {
     name: 'classe',
@@ -36,10 +39,10 @@ module.exports = {
         const db = getDB();
         
         if (!db.usuarios[userId]) {
-            db.usuarios[userId] = { classe: null, xpTotal: 0 };
+            db.usuarios[userId] = { carteira: 0, xpTotal: 0, classe: null };
         }
         
-        const level = calcularNivel(db.usuarios[userId].xpTotal || 0);
+        const nivel = calcularNivel(db.usuarios[userId].xpTotal || 0);
         
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
@@ -48,10 +51,10 @@ module.exports = {
                 .setDescription('Use `bt!classe escolher <classe>` para se tornar um herói!');
             
             for (const [id, classe] of Object.entries(classes)) {
-                const liberado = level >= classe.nivelMin;
+                const liberado = nivel >= classe.nivelMin;
                 embed.addFields({
                     name: classe.nome,
-                    value: `💰 Custo: ${classe.preco.toLocaleString()} Orbs | 🎯 Nível ${classe.nivelMin}+${liberado ? ' ✅' : ' 🔒'}`,
+                    value: `💰 Custo: ${classe.preco.toLocaleString()} Orbs | 🎯 Nível ${classe.nivelMin}+${liberado ? ' ✅' : ' 🔒'}\n✨ Bônus: ${Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join(', ')}`,
                     inline: false
                 });
             }
@@ -60,17 +63,24 @@ module.exports = {
         
         else if (subcmd === 'escolher') {
             const classeId = args[1];
-            if (!classeId || !classes[classeId]) return message.reply('❌ Classe inválida!');
+            if (!classeId || !classes[classeId]) return message.reply('❌ Classe inválida! Use `bt!classe listar`');
             
             const classe = classes[classeId];
-            if (level < classe.nivelMin) return message.reply(`❌ Você precisa ser nível ${classe.nivelMin}!`);
+            if (nivel < classe.nivelMin) return message.reply(`❌ Você precisa ser nível ${classe.nivelMin}!`);
             if ((db.usuarios[userId].carteira || 0) < classe.preco) return message.reply(`❌ Você precisa de ${classe.preco.toLocaleString()} Orbs!`);
             
             db.usuarios[userId].carteira -= classe.preco;
             db.usuarios[userId].classe = classeId;
             saveDB(db);
             
-            await message.reply(`✅ Você agora é um **${classe.nome}**! Seus bônus estão ativos!`);
+            const embed = new EmbedBuilder()
+                .setColor(classe.cor)
+                .setTitle('✅ Classe Escolhida!')
+                .setDescription(`Você agora é um **${classe.nome}**!`)
+                .addFields(
+                    { name: '✨ Bônus Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false }
+                );
+            await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'info') {
@@ -79,10 +89,12 @@ module.exports = {
             
             const classe = classes[classeId];
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(classe.cor)
                 .setTitle(`📊 Classe de ${message.author.username}`)
                 .setDescription(`🎭 **${classe.nome}**`)
-                .addFields({ name: '✨ Bônus', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false });
+                .addFields(
+                    { name: '✨ Bônus Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false }
+                );
             await message.reply({ embeds: [embed] });
         }
         
@@ -91,8 +103,3 @@ module.exports = {
         }
     }
 };
-
-function calcularNivel(xpTotal) {
-    if (xpTotal <= 0) return 1;
-    return Math.min(100, Math.floor(Math.sqrt(xpTotal / 100)) + 1);
-}
