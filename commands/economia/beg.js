@@ -53,7 +53,7 @@ module.exports = {
         cooldownsManager.set(userId, 'beg');
         
         const embed = new EmbedBuilder()
-            .setColor(evento.cor)
+            .setColor(0x00008B)
             .setTitle(`🎭 ${getRandomFrase('sucesso')}`)
             .setDescription(evento.texto)
             .addFields(
