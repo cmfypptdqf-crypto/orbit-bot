@@ -54,7 +54,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0xFF0000)
-            .setTitle('✅ Orbs Removidas!')
+            .setTitle('<a:h_checkazul:1503775331163705614> Orbs Removidas!')
             .setDescription(`${user} perdeu **${amount.toLocaleString()} orbs**!`)
             .addFields(
                 { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} orbs`, inline: true },
