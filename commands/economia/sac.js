@@ -50,7 +50,7 @@ module.exports = {
         saveDB(db);
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFA500)
+            .setColor(0x00008B)
             .setTitle(`💸 ${getRandomFrase('sucesso')}`)
             .setDescription(`📡 Você sacou **${amount.toLocaleString()} Orbs** do **Orbital Bank**!`)
             .addFields(
