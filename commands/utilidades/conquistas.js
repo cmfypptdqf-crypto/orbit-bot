@@ -1,4 +1,4 @@
-// commands/conquistas/conquistas.js
+// commands/rpg/conquista.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -12,64 +12,101 @@ function getDB() {
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
+function saveDB(data) {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
 const conquistas = [
-    { nome: '💰 Primeiro Milhão', desc: 'Acumule 1.000.000 Orbs', recompensa: '1000 XP', icone: '💰' },
-    { nome: '🎯 100 Missões', desc: 'Complete 100 missões', recompensa: '500 XP', icone: '🎯' },
-    { nome: '⚔️ Mestre dos Ataques', desc: 'Realize 100 ataques', recompensa: '500 XP', icone: '⚔️' },
-    { nome: '👑 Lendário', desc: 'Atinga nível 50', recompensa: '2000 XP', icone: '👑' }
+    { id: 1, nome: '🎯 Primeiros Passos', desc: 'Atingir nível 10', requisito: (data) => data.nivel >= 10, recompensa: 1000 },
+    { id: 2, nome: '💰 Primeiro Milhão', desc: 'Acumular 1.000.000 Orbs', requisito: (data) => data.totalOrbs >= 1000000, recompensa: 10000 },
+    { id: 3, nome: '⚔️ Mestre Guerreiro', desc: '100 vitórias em ataques', requisito: (data) => data.vitorias >= 100, recompensa: 5000 },
+    { id: 4, nome: '👑 Lendário', desc: 'Atingir nível 100', requisito: (data) => data.nivel >= 100, recompensa: 100000 },
+    { id: 5, nome: '🌌 Explorador', desc: '500 missões completadas', requisito: (data) => data.missoes >= 500, recompensa: 25000 }
 ];
 
+function calcularNivel(xpTotal) {
+    if (xpTotal <= 0) return 1;
+    return Math.min(100, Math.floor(Math.sqrt(xpTotal / 100)) + 1);
+}
+
 module.exports = {
-    name: 'conquistas',
-    aliases: ['achievements', 'conquista'],
+    name: 'conquista',
+    aliases: ['achievement', 'conquistas'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         const db = getDB();
         
         if (!db.usuarios[userId]) {
-            db.usuarios[userId] = {};
+            db.usuarios[userId] = { xpTotal: 0, total_missoes: 0, vitorias: 0, conquistasColetadas: [] };
         }
         
-        const nivel = calcularNivel(db.usuarios[userId].xpTotal || 0);
-        const totalOrbs = (db.usuarios[userId].carteira || 0) + (db.usuarios[userId].banco || 0);
-        const missoes = db.usuarios[userId].total_missoes || 0;
-        const ataques = db.usuarios[userId].total_ataques || 0;
+        const userData = db.usuarios[userId];
+        const nivel = calcularNivel(userData.xpTotal || 0);
+        const totalOrbs = (userData.carteira || 0) + (userData.banco || 0);
         
-        const conquistasObtidas = [];
-        const conquistasPendentes = [];
+        const conquistasStatus = conquistas.map(c => ({
+            ...c,
+            completo: c.requisito({
+                nivel,
+                totalOrbs,
+                missoes: userData.total_missoes || 0,
+                vitorias: userData.vitorias || 0
+            }),
+            coletado: userData.conquistasColetadas?.includes(c.id)
+        }));
         
-        if (totalOrbs >= 1000000) conquistasObtidas.push(conquistas[0]);
-        else conquistasPendentes.push(conquistas[0]);
+        const completas = conquistasStatus.filter(c => c.completo && !c.coletado);
+        const conquistadas = conquistasStatus.filter(c => c.coletado);
+        const pendentes = conquistasStatus.filter(c => !c.completo);
         
-        if (missoes >= 100) conquistasObtidas.push(conquistas[1]);
-        else conquistasPendentes.push(conquistas[1]);
-        
-        if (ataques >= 100) conquistasObtidas.push(conquistas[2]);
-        else conquistasPendentes.push(conquistas[2]);
-        
-        if (nivel >= 50) conquistasObtidas.push(conquistas[3]);
-        else conquistasPendentes.push(conquistas[3]);
-        
-        const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle(`🏆 Conquistas de ${message.author.username}`)
-            .setDescription(`📊 Progresso: ${conquistasObtidas.length}/${conquistas.length}`)
-            .setThumbnail(message.author.displayAvatarURL());
-        
-        if (conquistasObtidas.length > 0) {
-            embed.addFields({ name: '✅ CONQUISTADAS', value: conquistasObtidas.map(c => `${c.icone} **${c.nome}**\n📝 ${c.desc}\n🎁 ${c.recompensa}`).join('\n\n'), inline: false });
+        if (subcmd === 'coletar') {
+            if (completas.length === 0) return message.reply('❌ Nenhuma conquista disponível para coletar!');
+            
+            let totalOrbsGanho = 0;
+            for (const c of completas) {
+                userData.carteira += c.recompensa;
+                totalOrbsGanho += c.recompensa;
+                if (!userData.conquistasColetadas) userData.conquistasColetadas = [];
+                userData.conquistasColetadas.push(c.id);
+            }
+            saveDB(db);
+            
+            await message.reply(`✅ Você coletou **${completas.length} conquistas** e ganhou **${totalOrbsGanho.toLocaleString()} Orbs**!`);
         }
         
-        if (conquistasPendentes.length > 0) {
-            embed.addFields({ name: '🔒 PRÓXIMAS', value: conquistasPendentes.map(c => `${c.icone} **${c.nome}**\n📝 ${c.desc}\n🎁 ${c.recompensa}`).join('\n\n'), inline: false });
+        else {
+            const embed = new EmbedBuilder()
+                .setColor(0xFFD700)
+                .setTitle(`🏆 Conquistas de ${message.author.username}`)
+                .setDescription(`📊 Progresso: ${conquistadas.length}/${conquistas.length} conquistas`);
+            
+            if (conquistadas.length > 0) {
+                embed.addFields({
+                    name: '✅ CONQUISTADAS',
+                    value: conquistadas.map(c => `**${c.nome}**\n📝 ${c.desc}`).join('\n\n'),
+                    inline: false
+                });
+            }
+            
+            if (pendentes.length > 0) {
+                embed.addFields({
+                    name: '🔒 PRÓXIMAS',
+                    value: pendentes.map(c => `**${c.nome}**\n📝 ${c.desc}\n💰 Recompensa: ${c.recompensa.toLocaleString()} Orbs`).join('\n\n'),
+                    inline: false
+                });
+            }
+            
+            if (completas.length > 0) {
+                embed.addFields({
+                    name: '🎁 PRONTAS PARA COLETAR',
+                    value: completas.map(c => `**${c.nome}** - ${c.recompensa.toLocaleString()} Orbs`).join('\n'),
+                    inline: false
+                });
+                embed.setFooter({ text: 'Use bt!conquista coletar para receber suas recompensas!' });
+            }
+            
+            await message.reply({ embeds: [embed] });
         }
-        
-        await message.reply({ embeds: [embed] });
     }
 };
-
-function calcularNivel(xpTotal) {
-    if (xpTotal <= 0) return 1;
-    return Math.min(100, Math.floor(Math.sqrt(xpTotal / 100)) + 1);
-}
