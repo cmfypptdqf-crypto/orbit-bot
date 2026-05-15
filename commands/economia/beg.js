@@ -54,13 +54,13 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`🎭 ${getRandomFrase('sucesso')}`)
+            .setTitle(`<a:h_checkazul:1503775331163705614> ${getRandomFrase('sucesso')}`)
             .setDescription(evento.texto)
             .addFields(
-                { name: '✨ Recebido', value: `+${ganho.toLocaleString()} Orbs`, inline: true },
-                { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                { name: '<:emoji_53:1504077672781709382> Recebido', value: `+${ganho.toLocaleString()} Orbs`, inline: true },
+                { name: '<a:gcoin:1503617439202545757> Núcleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: '🎭 Esmola espacial • Volte em 5 minutos' });
+            .setFooter({ text: '<:emoji_50:1504077599222267925> Esmola espacial • Volte em 5 minutos' });
         
         if (eventoResultado) {
             embed.addFields({ name: '🎲 EVENTO!', value: eventoResultado.mensagem, inline: false });
