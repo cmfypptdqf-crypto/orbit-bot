@@ -41,7 +41,7 @@ module.exports = {
         
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🏷️ Títulos Disponíveis')
                 .setDescription('Use `bt!titulos comprar <id>` para adquirir um título!');
             
@@ -87,7 +87,7 @@ module.exports = {
             const lista = meusTitulos.map(id => `**${titulos[id].nome}**${tituloAtivo === id ? ' ✅ ATIVO' : ''}`).join('\n');
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle(`🏷️ Títulos de ${message.author.username}`)
                 .setDescription(lista || 'Nenhum título ainda');
             await message.reply({ embeds: [embed] });
