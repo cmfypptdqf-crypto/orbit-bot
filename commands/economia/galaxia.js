@@ -60,25 +60,25 @@ module.exports = {
         }
         
         else if (subcmd === 'conquistar') {
-            if (!clan) return message.reply('❌ Você precisa estar em uma **Star Federation**!');
-            if (!isLider) return message.reply('❌ Apenas o líder pode conquistar!');
+            if (!clan) return message.reply('<:emoji_47:1504081397373997076> Você precisa estar em uma **Star Federation**!');
+            if (!isLider) return message.reply('<:emoji_47:1504081397373997076> Apenas o líder pode conquistar!');
             
             const nomeGalaxia = args.slice(1).join(' ');
             let galaxiaId = null;
             for (const [id, g] of Object.entries(galaxias)) {
                 if (g.nome.toLowerCase().includes(nomeGalaxia.toLowerCase())) galaxiaId = id;
             }
-            if (!galaxiaId) return message.reply('❌ Galáxia não encontrada!');
+            if (!galaxiaId) return message.reply('<:emoji_47:1504081397373997076> Galáxia não encontrada!');
             
             const galaxia = galaxias[galaxiaId];
             const donoAtual = Object.values(db.clans).find(c => c.galaxiaAtual === galaxiaId);
             if (donoAtual && donoAtual.id !== clanId) {
-                return message.reply(`❌ ${galaxia.nome} já é dominada por ${donoAtual.nome}!`);
+                return message.reply(`<:emoji_47:1504081397373997076> ${galaxia.nome} já é dominada por ${donoAtual.nome}!`);
             }
             
             const poderClan = recalcularPoderClan(clanId, db);
             if (poderClan < galaxia.defesa) {
-                return message.reply(`❌ Poder insuficiente! Sua **Star Federation** precisa de ${galaxia.defesa.toLocaleString()} de poder!`);
+                return message.reply(`<:emoji_47:1504081397373997076> Poder insuficiente! Sua **Star Federation** precisa de ${galaxia.defesa.toLocaleString()} de poder!`);
             }
             
             clan.galaxiaAtual = galaxiaId;
@@ -90,8 +90,8 @@ module.exports = {
         }
         
         else if (subcmd === 'bonus') {
-            if (!clan) return message.reply('❌ Você não está em uma Star Federation!');
-            if (!clan.galaxiaAtual) return message.reply('❌ Sua Star Federation não domina nenhuma galáxia!');
+            if (!clan) return message.reply('<:emoji_47:1504081397373997076> Você não está em uma Star Federation!');
+            if (!clan.galaxiaAtual) return message.reply('<:emoji_47:1504081397373997076> Sua Star Federation não domina nenhuma galáxia!');
             
             const galaxia = galaxias[clan.galaxiaAtual];
             const embed = new EmbedBuilder()
