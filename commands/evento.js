@@ -1,9 +1,8 @@
-// commands/rpg/evento.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '..', '..', 'database.json');
+const dbPath = path.join(__dirname, '..', 'database.json');
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
@@ -26,9 +25,27 @@ const eventos = {
 let eventoAtivo = null;
 let eventoExpira = null;
 
+// Função para aplicar bônus de evento (será usada por outros comandos)
+function aplicarBonusEvento(valor) {
+    if (eventoAtivo && eventoExpira && eventoExpira > Date.now()) {
+        return Math.floor(valor * eventoAtivo.bonus);
+    }
+    return valor;
+}
+
+// Função para obter evento ativo
+function getEventoAtivo() {
+    if (eventoAtivo && eventoExpira && eventoExpira > Date.now()) {
+        return eventoAtivo;
+    }
+    return null;
+}
+
 module.exports = {
     name: 'evento',
     aliases: ['event', 'eventos'],
+    aplicarBonusEvento,  // Exportando a função
+    getEventoAtivo,      // Exportando a função
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
