@@ -2,7 +2,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularNivel, getTituloPorNivel } = require('../utilidades/levelSystem.js');
+const { calcularNivel, getTituloPorNivel } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
