@@ -54,7 +54,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`<a:h_checkazul:1503775331163705614> ${getRandomFrase('sucesso')}`)
+            .setTitle(`<a:h_checkazul:1503775331163705614> sucesso`)
             .setDescription(evento.texto)
             .addFields(
                 { name: '<:emoji_53:1504077672781709382> Recebido', value: `+${ganho.toLocaleString()} Orbs`, inline: true },
