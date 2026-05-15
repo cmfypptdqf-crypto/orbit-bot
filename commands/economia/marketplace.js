@@ -48,7 +48,7 @@ module.exports = {
         else if (subcmd === 'listar') {
             if (db.marketItems.length === 0) return message.reply('📭 Nenhum item no **Void Market**!');
             const embed = new EmbedBuilder()
-                .setColor(0x2C3E50)
+                .setColor(0x00008B)
                 .setTitle('🌑 Void Market')
                 .setDescription('Onde as oportunidades se escondem...');
             for (const item of db.marketItems.slice(0, 10)) {
