@@ -52,7 +52,7 @@ module.exports = {
         cooldownsManager.set(userId, 'daily');
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
+            .setColor(0x00008B)
             .setTitle(`📆 ${getRandomFrase('sucesso')}`)
             .setDescription(`📡 Bônus diário recebido!`)
             .addFields(
