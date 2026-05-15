@@ -1,5 +1,5 @@
 // commands/economia/mercadogalactico.js
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -32,10 +32,44 @@ const itensLoja = {
 
 function getRaridadeIcon(raridade) {
     switch(raridade) {
-        case 'Comum': return '⚪'; case 'Raro': return '🔵';
-        case 'Épico': return '🟣'; case 'Lendário': return '🟠';
-        case 'Especial': return '⭐'; default: return '⬜';
+        case 'Comum': return '⚪';
+        case 'Raro': return '🔵';
+        case 'Épico': return '🟣';
+        case 'Lendário': return '🟠';
+        case 'Especial': return '⭐';
+        default: return '⬜';
     }
+}
+
+function createShopEmbed(itensArray, page, itemsPerPage, userData) {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = itensArray.slice(start, end);
+    const totalPages = Math.ceil(itensArray.length / itemsPerPage);
+    
+    const embed = new EmbedBuilder()
+        .setColor(0x00008B)
+        .setTitle('🛒 Galaxy Store')
+        .setDescription(`🌌 Bem-vindo à **Galaxy Store**, comandante!\n💰 Saldo: **${userData.carteira.toLocaleString()} Orbs** (🏦 Orbital Bank: ${userData.banco.toLocaleString()})`)
+        .setThumbnail(userData.guildIcon)
+        .setFooter({ text: `📄 Página ${page}/${totalPages} • ${itensArray.length} itens no total` });
+    
+    for (const [id, item] of pageItems) {
+        const raridadeIcon = getRaridadeIcon(item.raridade);
+        embed.addFields({
+            name: `${raridadeIcon} \`${id}\` - ${item.nome}`,
+            value: `💰 **${item.preco.toLocaleString()} Orbs**\n📝 ${item.descricao}\n🏷️ ${item.raridade}`,
+            inline: false
+        });
+    }
+    
+    embed.addFields({
+        name: '💡 COMANDOS',
+        value: '`bt!comprar <id>` - Adquirir item\n`bt!mochila` - Ver seus itens',
+        inline: false
+    });
+    
+    return embed;
 }
 
 module.exports = {
@@ -50,31 +84,131 @@ module.exports = {
             db.usuarios[userId] = { carteira: 0, banco: 0, inventario: {} };
         }
         
-        const carteira = db.usuarios[userId].carteira || 0;
-        const banco = db.usuarios[userId].banco || 0;
+        const userData = {
+            carteira: db.usuarios[userId].carteira || 0,
+            banco: db.usuarios[userId].banco || 0,
+            guildIcon: message.guild.iconURL()
+        };
         
-        const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
-            .setTitle('🛒 Galaxy Store')
-            .setDescription(`🌌 Bem-vindo à **Galaxy Store**, comandante!\n💰 Saldo: **${carteira.toLocaleString()} Orbs** (🏦 Orbital Bank: ${banco.toLocaleString()})`)
-            .setThumbnail(message.guild.iconURL());
+        const itensArray = Object.entries(itensLoja);
+        const itemsPerPage = 5;
+        let currentPage = 1;
+        const totalPages = Math.ceil(itensArray.length / itemsPerPage);
         
-        for (const [id, item] of Object.entries(itensLoja)) {
-            const raridadeIcon = getRaridadeIcon(item.raridade);
-            embed.addFields({
-                name: `${raridadeIcon} ${id} - ${item.nome}`,
-                value: `💰 **${item.preco.toLocaleString()} Orbs**\n📝 ${item.descricao}\n🏷️ ${item.raridade}`,
-                inline: false
-            });
-        }
+        const embed = createShopEmbed(itensArray, currentPage, itemsPerPage, userData);
         
-        embed.addFields({
-            name: '💡 COMANDOS',
-            value: '`bt!comprar <id>` - Adquirir item\n`bt!mochila` - Ver seus itens',
-            inline: false
-        })
-        .setFooter({ text: '🛒 Galaxy Store • O melhor shopping da galáxia' });
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('first_page')
+                    .setLabel('⏮️')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
+                new ButtonBuilder()
+                    .setCustomId('prev_page')
+                    .setLabel('◀️')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
+                new ButtonBuilder()
+                    .setCustomId('page_indicator')
+                    .setLabel(`${currentPage}/${totalPages}`)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
+                new ButtonBuilder()
+                    .setCustomId('next_page')
+                    .setLabel('▶️')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(totalPages === 1),
+                new ButtonBuilder()
+                    .setCustomId('last_page')
+                    .setLabel('⏭️')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(totalPages === 1)
+            );
         
-        await message.reply({ embeds: [embed] });
+        const reply = await message.reply({ embeds: [embed], components: [row] });
+        
+        const collector = reply.createMessageComponentCollector({
+            filter: (interaction) => interaction.user.id === message.author.id,
+            time: 60000
+        });
+        
+        collector.on('collect', async (interaction) => {
+            if (interaction.customId === 'first_page') {
+                currentPage = 1;
+            } else if (interaction.customId === 'prev_page') {
+                currentPage = Math.max(1, currentPage - 1);
+            } else if (interaction.customId === 'next_page') {
+                currentPage = Math.min(totalPages, currentPage + 1);
+            } else if (interaction.customId === 'last_page') {
+                currentPage = totalPages;
+            }
+            
+            const newEmbed = createShopEmbed(itensArray, currentPage, itemsPerPage, userData);
+            
+            const newRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('first_page')
+                        .setLabel('⏮️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(currentPage === 1),
+                    new ButtonBuilder()
+                        .setCustomId('prev_page')
+                        .setLabel('◀️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(currentPage === 1),
+                    new ButtonBuilder()
+                        .setCustomId('page_indicator')
+                        .setLabel(`${currentPage}/${totalPages}`)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('next_page')
+                        .setLabel('▶️')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(currentPage === totalPages),
+                    new ButtonBuilder()
+                        .setCustomId('last_page')
+                        .setLabel('⏭️')
+                        .setStyle(ButtonStyle.Primary)
+                        .setDisabled(currentPage === totalPages)
+                );
+            
+            await interaction.update({ embeds: [newEmbed], components: [newRow] });
+        });
+        
+        collector.on('end', async () => {
+            const disabledRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId('first_page')
+                        .setLabel('⏮️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('prev_page')
+                        .setLabel('◀️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('page_indicator')
+                        .setLabel('⌛ Expirado')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('next_page')
+                        .setLabel('▶️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
+                    new ButtonBuilder()
+                        .setCustomId('last_page')
+                        .setLabel('⏭️')
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true)
+                );
+            
+            await reply.edit({ components: [disabledRow] }).catch(() => {});
+        });
     }
 };
