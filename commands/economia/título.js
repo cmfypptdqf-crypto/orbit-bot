@@ -58,12 +58,12 @@ module.exports = {
         
         else if (subcmd === 'comprar') {
             const id = args[1];
-            if (!id || !titulos[id]) return message.reply('❌ ID inválido!');
+            if (!id || !titulos[id]) return message.reply('<:emoji_47:1504081397373997076> ID inválido!');
             
             const titulo = titulos[id];
-            if (nivelUsuario < titulo.nivelMin) return message.reply(`❌ Você precisa ser nível ${titulo.nivelMin}!`);
-            if ((db.usuarios[userId].carteira || 0) < titulo.preco) return message.reply(`❌ Você precisa de ${titulo.preco.toLocaleString()} Orbs!`);
-            if (db.usuarios[userId].titulos?.includes(id)) return message.reply('❌ Você já possui este título!');
+            if (nivelUsuario < titulo.nivelMin) return message.reply(`<:emoji_47:1504081397373997076> Você precisa ser nível ${titulo.nivelMin}!`);
+            if ((db.usuarios[userId].carteira || 0) < titulo.preco) return message.reply(`<:emoji_47:1504081397373997076> Você precisa de ${titulo.preco.toLocaleString()} Orbs!`);
+            if (db.usuarios[userId].titulos?.includes(id)) return message.reply('<:emoji_47:1504081397373997076> Você já possui este título!');
             
             db.usuarios[userId].carteira -= titulo.preco;
             if (!db.usuarios[userId].titulos) db.usuarios[userId].titulos = [];
@@ -75,7 +75,7 @@ module.exports = {
         
         else if (subcmd === 'equipar') {
             const id = args[1];
-            if (!db.usuarios[userId]?.titulos?.includes(id)) return message.reply('❌ Você não possui este título!');
+            if (!db.usuarios[userId]?.titulos?.includes(id)) return message.reply('<:emoji_47:1504081397373997076> Você não possui este título!');
             db.usuarios[userId].tituloAtivo = id;
             saveDB(db);
             await message.reply(`✅ Agora você está usando o título **${titulos[id].nome}**!`);
