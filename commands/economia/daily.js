@@ -120,7 +120,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`📆 ${getRandomFrase('sucesso')}`)
+            .setTitle(`📆 sucesso`)
             .setDescription(`📡 Bônus diário recebido, comandante!`)
             .addFields(
                 { name: '🎁 Bônus Base', value: `${bonusBase.toLocaleString()} Orbs`, inline: true },
