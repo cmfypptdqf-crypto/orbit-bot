@@ -49,15 +49,15 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`📅 ${getRandomFrase('sucesso')}`)
-            .setDescription(`🎉 Bônus semanal recebido!`)
+            .setTitle(`<:emoji_45:1504081355703586866> ${getRandomFrase('sucesso')}`)
+            .setDescription(`<a:h_checkazul:1503775331163705614> Bônus semanal recebido!`)
             .addFields(
                 { name: '💰 Bônus', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
                 { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
                 { name: '⭐ Stellar XP', value: `+${xpGanho.toLocaleString()} XP`, inline: true },
                 { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
             )
-            .setFooter({ text: '📅 Volte semana que vem para mais Stellar XP!' });
+            .setFooter({ text: '<:emoji_45:1504081355703586866> Volte semana que vem para mais Stellar XP!' });
         
         await message.reply({ embeds: [embed] });
     }
