@@ -51,9 +51,9 @@ module.exports = {
             .setTitle('<a:h_checkazul:1503775331163705614> Orbs Adicionadas!')
             .setDescription(`${user} recebeu **${amount.toLocaleString()} orbs**!`)
             .addFields(
-                { name: '💰 Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} moedas`, inline: true },
-                { name: '👮 Adicionado por', value: message.author.tag, inline: true },
-                { name: '📌 Cargo necessário', value: `<@&${CARGO_PERMITIDO_ID}>`, inline: false }
+                { name: '<a:gcoin:1503617439202545757> Novo saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} moedas`, inline: true },
+                { name: '<:staff:1503614019574169610> Adicionado por', value: message.author.tag, inline: true },
+                { name: '<:emoji_64:1504074003612958801> Cargo necessário', value: `<@&${CARGO_PERMITIDO_ID}>`, inline: false }
             )
             .setTimestamp();
         
