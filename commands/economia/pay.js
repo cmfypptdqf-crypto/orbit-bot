@@ -22,11 +22,11 @@ module.exports = {
     
     async executePrefix(message, args, client) {
         const user = message.mentions.users.first();
-        if (!user) return message.reply('❌ Use: `bt!pay @usuario <quantia>`');
-        if (user.id === message.author.id) return message.reply('❌ Não pode pagar a si mesmo!');
+        if (!user) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!pay @usuario <quantia>`');
+        if (user.id === message.author.id) return message.reply('<:emoji_47:1504081397373997076> Não pode pagar a si mesmo!');
         
         const amount = parseInt(args[1]);
-        if (isNaN(amount) || amount <= 0) return message.reply('❌ Valor inválido!');
+        if (isNaN(amount) || amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Valor inválido!');
         
         const db = getDB();
         const senderId = message.author.id;
@@ -36,7 +36,7 @@ module.exports = {
         if (!db.usuarios[targetId]) db.usuarios[targetId] = { carteira: 0, banco: 0 };
         
         const senderBalance = db.usuarios[senderId].carteira || 0;
-        if (senderBalance < amount) return message.reply(`❌ Você só tem ${senderBalance.toLocaleString()} Orbs!`);
+        if (senderBalance < amount) return message.reply(`<:emoji_47:1504081397373997076> Você só tem ${senderBalance.toLocaleString()} Orbs!`);
         
         db.usuarios[senderId].carteira = senderBalance - amount;
         db.usuarios[targetId].carteira = (db.usuarios[targetId].carteira || 0) + amount;
