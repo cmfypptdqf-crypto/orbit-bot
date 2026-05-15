@@ -5,7 +5,13 @@ const path = require('path');
 const { calcularBonusTotal } = require('../utilidades/galaxiaBonus.js');
 const { getRandomFrase } = require('../utilidades/orbitAI.js');
 const cooldownsManager = require('../utilidades/cooldownsManager.js');
+// Em outros comandos (ex: daily, missao, etc)
+const { aplicarBonusEvento } = require('./evento.js');
 
+// Aplicar bônus automático
+const recompensaBase = 1000;
+const recompensaFinal = aplicarBonusEvento(recompensaBase);
+// Se tiver evento ativo com 1.5x, retorna 1500
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
