@@ -39,7 +39,7 @@ module.exports = {
         const barra = gerarBarraProgresso(progresso, 20);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle(`📊 Nível de ${user.username}`)
             .setThumbnail(user.displayAvatarURL())
             .setDescription(`${barra}\n📈 ${xpAtual.toLocaleString()} / ${xpNecessario.toLocaleString()} XP (${progresso}%)`)
