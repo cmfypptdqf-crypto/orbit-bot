@@ -44,7 +44,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('💸 Transferência realizada!')
+            .setTitle('<a:h_checkazul:1503775331163705614> Transferência realizada!')
             .setDescription(`📡 ${message.author} pagou **${amount.toLocaleString()} Orbs** para ${user}`)
             .addFields({ name: '💵 Seu saldo', value: `${db.usuarios[senderId].carteira.toLocaleString()} Orbs`, inline: true })
             .setFooter({ text: '💸 Transação concluída com sucesso!' });
