@@ -31,10 +31,10 @@ module.exports = {
             const user = message.mentions.users.first();
             const itemId = args[2];
             const qtd = parseInt(args[3]) || 1;
-            if (!user || !itemId) return message.reply('❌ Use: `bt!trade oferecer @user <id> [qtd]`');
+            if (!user || !itemId) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!trade oferecer @user <id> [qtd]`');
             
             const userId = message.author.id;
-            if ((db.usuarios[userId]?.inventario?.[itemId] || 0) < qtd) return message.reply('❌ Você não tem este item!');
+            if ((db.usuarios[userId]?.inventario?.[itemId] || 0) < qtd) return message.reply('<:emoji_47:1504081397373997076> Você não tem este item!');
             
             const tradeId = `${userId}_${user.id}`;
             if (!db.trades[tradeId]) db.trades[tradeId] = { user1: userId, user2: user.id, items1: [], items2: [] };
@@ -47,17 +47,17 @@ module.exports = {
         else if (subcmd === 'aceitar') {
             const tradeId = args[1];
             const trade = db.trades[tradeId];
-            if (!trade) return message.reply('❌ Troca não encontrada!');
-            if (trade.user2 !== message.author.id) return message.reply('❌ Esta troca não é para você!');
+            if (!trade) return message.reply('<:emoji_47:1504081397373997076> Troca não encontrada!');
+            if (trade.user2 !== message.author.id) return message.reply('<:emoji_47:1504081397373997076> Esta troca não é para você!');
             
             const userId = message.author.id;
             const otherId = trade.user1;
             
             for (const item of trade.items1) {
-                if ((db.usuarios[otherId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('❌ Ofertas expiraram!');
+                if ((db.usuarios[otherId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('<:emoji_47:1504081397373997076> Ofertas expiraram!');
             }
             for (const item of trade.items2) {
-                if ((db.usuarios[userId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('❌ Você não tem os itens oferecidos!');
+                if ((db.usuarios[userId]?.inventario?.[item.id] || 0) < item.qtd) return message.reply('<:emoji_47:1504081397373997076> Você não tem os itens oferecidos!');
             }
             
             for (const item of trade.items1) {
