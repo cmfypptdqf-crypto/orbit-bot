@@ -88,8 +88,20 @@ module.exports = {
         cooldownsManager.set(userId, 'pirataria');
         
         if (sucesso) {
-            const percentual = Math.random() * 0.25 + 0.1;
-            let valorRoubado = Math.min(10000, Math.max(50, Math.floor(vitimaOrbs * percentual)));
+            // ========== ROUBO VARIÁVEL DE ATÉ 30% DO SALDO DA VÍTIMA ==========
+            // Percentual entre 5% e 30% (variável)
+            const percentualMin = 0.05;  // 5% mínimo
+            const percentualMax = 0.30;  // 30% máximo
+            const percentual = Math.random() * (percentualMax - percentualMin) + percentualMin;
+            
+            // Calcular valor roubado baseado no percentual
+            let valorRoubado = Math.floor(vitimaOrbs * percentual);
+            
+            // Aplicar limites: mínimo 50 Orbs, máximo 15.000 Orbs
+            valorRoubado = Math.min(15000, Math.max(50, valorRoubado));
+            
+            // Garantir que não roube mais do que a vítima tem
+            valorRoubado = Math.min(valorRoubado, vitimaOrbs);
             
             // Aplicar boost de ganhos se ativo
             let multiplicadorGanho = 1.0;
@@ -113,17 +125,22 @@ module.exports = {
             
             saveDB(db);
             
+            // Criar barra visual do percentual roubado
+            const barraPercentual = gerarBarraPercentual(percentual, 15);
+            
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
                 .setTitle(`☄️ ${getComandoFrase('pirataria')}`)
                 .setDescription(`📡 Você saqueou **${valorFinal.toLocaleString()} Orbs** de ${user.username}!`)
                 .addFields(
-                    { name: '🎯 Chance', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
+                    { name: '🎯 Chance de Sucesso', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
+                    { name: '📊 Percentual Roubado', value: `${barraPercentual} **${Math.round(percentual * 100)}%** do saldo`, inline: false },
                     { name: '💰 Valor Roubado', value: `${valorFinal.toLocaleString()} Orbs`, inline: true },
                     { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true },
-                    { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    { name: '💵 Seu Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
+                    { name: '😢 Saldo da Vítima', value: `${db.usuarios[targetId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
-                .setFooter({ text: '☄️ Ataque realizado com sucesso!' });
+                .setFooter({ text: '☄️ Ataque realizado com sucesso! Próximo em 30 minutos' });
             
             // Verificar level up
             if (resultadoXP.levelUp) {
@@ -158,14 +175,21 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle(`🚨 Ataque Falhou!`)
-                .setDescription(`Você foi capturado ao tentar atacar ${user.username}!`)
+                .setDescription(`Você foi capturado pela Patrulha Galáctica ao tentar atacar ${user.username}!`)
                 .addFields(
                     { name: '💰 Multa', value: `${perda.toLocaleString()} Orbs`, inline: true },
                     { name: '💀 XP Perdido', value: `${xpPerdido} XP`, inline: true },
-                    { name: '💵 Saldo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
+                    { name: '💵 Saldo Restante', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true }
                 )
                 .setFooter({ text: '☄️ Tente novamente em 30 minutos' });
             await message.reply({ embeds: [embed] });
         }
     }
 };
+
+// Função para gerar barra visual do percentual
+function gerarBarraPercentual(percentual, tamanho = 15) {
+    const preenchido = Math.round(percentual * tamanho);
+    const vazio = tamanho - preenchido;
+    return `🟥`.repeat(preenchido) + `⬜`.repeat(vazio);
+}
