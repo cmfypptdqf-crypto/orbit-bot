@@ -64,7 +64,7 @@ module.exports = {
         cooldownsManager.set(userId, 'missao');
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle(`🎯 ${getComandoFrase('missao') || getRandomFrase('inicio')}`)
             .setDescription(`📡 **${missao.nome}**\n${getRandomFrase('sucesso')}`)
             .addFields(
