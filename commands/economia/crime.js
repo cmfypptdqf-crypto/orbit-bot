@@ -130,7 +130,7 @@ module.exports = {
             
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
-                .setTitle(`☄️ ${getComandoFrase('pirataria')}`)
+                .setTitle(`☄️ pirataria`)
                 .setDescription(`📡 Você saqueou **${valorFinal.toLocaleString()} Orbs** de ${user.username}!`)
                 .addFields(
                     { name: '🎯 Chance de Sucesso', value: `${Math.round(chanceSucesso * 100)}%`, inline: true },
