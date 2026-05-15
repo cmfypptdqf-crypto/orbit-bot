@@ -51,7 +51,7 @@ module.exports = {
             db.usuarios[userId].clan = clanId;
             saveDB(db);
             
-            await message.reply(`✅ **Star Federation: ${nome}** criada com sucesso!`);
+            await message.reply(`<:emoji_46:1504081377291927632> **Star Federation: ${nome}** criada com sucesso!`);
         }
         
         else if (subcmd === 'info') {
@@ -101,7 +101,7 @@ module.exports = {
             db.convites[user.id] = { clanId: clanId, expires: Date.now() + 300000 };
             saveDB(db);
             
-            await message.reply(`✅ Convite enviado para ${user}! Use \`bt!starfed entrar\` para aceitar.`);
+            await message.reply(`<:emoji_46:1504081377291927632> Convite enviado para ${user}! Use \`bt!starfed entrar\` para aceitar.`);
         }
         
         else if (subcmd === 'entrar') {
@@ -122,7 +122,7 @@ module.exports = {
             recalcularPoderClan(convite.clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você entrou na **Star Federation: ${clan.nome}**!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Você entrou na **Star Federation: ${clan.nome}**!`);
         }
         
         else if (subcmd === 'sair') {
@@ -139,7 +139,7 @@ module.exports = {
             recalcularPoderClan(clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você saiu da **Star Federation: ${clan.nome}**!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Você saiu da **Star Federation: ${clan.nome}**!`);
         }
         
         else if (subcmd === 'transferir') {
@@ -157,7 +157,7 @@ module.exports = {
             recalcularPoderClan(clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Liderança transferida para ${user}!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Liderança transferida para ${user}!`);
         }
         
         else if (subcmd === 'deletar') {
@@ -173,7 +173,7 @@ module.exports = {
             delete db.clans[clanId];
             saveDB(db);
             
-            await message.reply(`✅ **Star Federation: ${clan.nome}** foi deletada!`);
+            await message.reply(`<:emoji_46:1504081377291927632> **Star Federation: ${clan.nome}** foi deletada!`);
         }
         
         else if (subcmd === 'doar') {
@@ -202,7 +202,7 @@ module.exports = {
             recalcularPoderClan(clanId, db);
             saveDB(db);
             
-            await message.reply(`✅ Você doou ${quantia.toLocaleString()} Orbs para a **Star Federation**!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Você doou ${quantia.toLocaleString()} Orbs para a **Star Federation**!`);
         }
         
         else if (subcmd === 'ranking') {
