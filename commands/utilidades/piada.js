@@ -15,7 +15,7 @@ module.exports = {
         const piada = piadas[Math.floor(Math.random() * piadas.length)];
         
         const embed = new EmbedBuilder()
-            .setColor(0xFFD700)
+            .setColor(0x00008B)
             .setTitle('😂 Piada Cósmica')
             .setDescription(`📡 ${piada.pergunta}\n\n✨ **${piada.resposta}**`)
             .setFooter({ text: '🌌 Orbit • Comédia interestelar' });
