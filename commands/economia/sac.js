@@ -51,11 +51,11 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`💸 ${getRandomFrase('sucesso')}`)
-            .setDescription(`📡 Você sacou **${amount.toLocaleString()} Orbs** do **Orbital Bank**!`)
+            .setTitle(`<a:h_checkazul:1503775331163705614> ${getRandomFrase('sucesso')}`)
+            .setDescription(`Você sacou **${amount.toLocaleString()} Orbs** do **Orbital Bank**!`)
             .addFields(
-                { name: '💵 Carteira', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
-                { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
+                { name: '<a:gcoin:1503617439202545757> Carteira', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
+                { name: '<a:gcoin:1503617439202545757> Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
             )
             .setFooter({ text: '✨ Orbital Bank • Fundos garantidos pela Federação' });
         
