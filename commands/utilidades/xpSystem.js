@@ -64,10 +64,23 @@ function calcularXPporGanho(ganhoOrbs) {
     return Math.max(1, Math.floor(ganhoOrbs / 10));
 }
 
+// Adicionando a função que estava faltando
+function getTituloPorNivel(nivel) {
+    if (nivel < 5) return '🌑 Viajante Espacial';
+    if (nivel < 10) return '🌟 Explorador Estelar';
+    if (nivel < 20) return '🚀 Comandante Galáctico';
+    if (nivel < 35) return '⭐ Senhor das Estrelas';
+    if (nivel < 50) return '👑 Imperador Cósmico';
+    if (nivel < 70) return '🌀 Lenda Viva';
+    if (nivel < 90) return '⚡ Ser Cósmico';
+    return '🌌 Divindade Universal';
+}
+
 module.exports = { 
     adicionarXP, 
     calcularNivel, 
     xpParaProximoNivel, 
     xpAtualNoNivel,
-    calcularXPporGanho
+    calcularXPporGanho,
+    getTituloPorNivel  // Exportando a nova função
 };
