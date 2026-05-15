@@ -132,7 +132,7 @@ module.exports = {
         
         const embed = new EmbedBuilder()
             .setColor(0x00008B)
-            .setTitle(`🎯 ${getComandoFrase('missao') || getRandomFrase('inicio')}`)
+            .setTitle(`🎯 missao iniciada`)
             .setDescription(`📡 **${missao.nome}**\nsucesso`)
             .addFields(
                 { name: '💰 Ganho Base', value: `${ganhoBase.toLocaleString()} Orbs`, inline: true },
