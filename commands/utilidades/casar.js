@@ -81,7 +81,7 @@ module.exports = {
             const dataCasamento = db.casamentos[userId].data;
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle(`💍 Casamento de ${message.author.username}`)
                 .setDescription(`💑 Parceiro(a): **${parceiro.username}**\n📅 Casados desde: <t:${Math.floor(dataCasamento / 1000)}:D>`)
                 .setFooter({ text: '💕 Que o amor interestelar dure para sempre!' });
