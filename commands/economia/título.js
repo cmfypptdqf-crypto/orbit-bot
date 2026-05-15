@@ -70,7 +70,7 @@ module.exports = {
             db.usuarios[userId].titulos.push(id);
             saveDB(db);
             
-            await message.reply(`✅ Você adquiriu o título **${titulo.nome}**! Use \`bt!titulos equipar ${id}\` para usá-lo.`);
+            await message.reply(`<:emoji_46:1504081377291927632> Você adquiriu o título **${titulo.nome}**! Use \`bt!titulos equipar ${id}\` para usá-lo.`);
         }
         
         else if (subcmd === 'equipar') {
@@ -78,13 +78,13 @@ module.exports = {
             if (!db.usuarios[userId]?.titulos?.includes(id)) return message.reply('<:emoji_47:1504081397373997076> Você não possui este título!');
             db.usuarios[userId].tituloAtivo = id;
             saveDB(db);
-            await message.reply(`✅ Agora você está usando o título **${titulos[id].nome}**!`);
+            await message.reply(`<:emoji_46:1504081377291927632> Agora você está usando o título **${titulos[id].nome}**!`);
         }
         
         else if (subcmd === 'meus') {
             const meusTitulos = db.usuarios[userId].titulos || [];
             const tituloAtivo = db.usuarios[userId].tituloAtivo;
-            const lista = meusTitulos.map(id => `**${titulos[id].nome}**${tituloAtivo === id ? ' ✅ ATIVO' : ''}`).join('\n');
+            const lista = meusTitulos.map(id => `**${titulos[id].nome}**${tituloAtivo === id ? ' <:emoji_46:1504081377291927632> ATIVO' : ''}`).join('\n');
             
             const embed = new EmbedBuilder()
                 .setColor(0x00008B)
