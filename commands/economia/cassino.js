@@ -268,7 +268,7 @@ module.exports = {
         
         else {
             const embed = new EmbedBuilder()
-                .setColor(0x9B59B6)
+                .setColor(0x00008B)
                 .setTitle('📦 Nebula Crate - Sistema de Cassino')
                 .setDescription('🎰 **Jogos disponíveis** (cooldown de 5 horas entre jogadas)')
                 .addFields(
