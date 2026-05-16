@@ -83,7 +83,7 @@ module.exports = {
             const felicidade = Math.floor((fome / pet.fomeMax) * 100);
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle(`🐾 Seu Pet: ${pet.nome}`)
                 .addFields(
                     { name: '🍖 Fome', value: `${fome}/${pet.fomeMax} (${felicidade}%)`, inline: true },
@@ -94,7 +94,7 @@ module.exports = {
         
         else if (subcmd === 'lista') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🐾 Pets Disponíveis')
                 .setDescription('Use `bt!pet adotar <id>` para adotar um pet!');
             
