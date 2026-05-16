@@ -43,7 +43,7 @@ module.exports = {
         
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('⭐ Habilidades Disponíveis')
                 .setDescription('Use `bt!habilidade comprar <id>` para aprender uma habilidade!');
             
@@ -127,7 +127,7 @@ module.exports = {
             
             const lista = minhasHabs.map(id => `**${habilidades[id].nome}** - ${habilidades[id].desc}`).join('\n');
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle(`⭐ Habilidades de ${message.author.username}`)
                 .setDescription(lista);
             await message.reply({ embeds: [embed] });
