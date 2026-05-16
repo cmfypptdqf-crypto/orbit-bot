@@ -161,7 +161,7 @@ module.exports = {
             const tempoParaSaque = saqueCooldown.formatted;
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle(`🚀 Star Federation: ${clan.nome}`)
                 .setThumbnail(message.guild.iconURL())
                 .addFields(
@@ -298,7 +298,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFA500)
+                .setColor(0x00008B)
                 .setTitle('👢 Membro Expulso!')
                 .setDescription(`**${user.username}** foi expulso do clã **${clan.nome}**!`)
                 .addFields(
@@ -419,7 +419,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('💰 Saque de Recursos do Clã')
                 .setDescription(`📦 **${message.author.username}** sacou recursos do clã!`)
                 .addFields(
@@ -472,7 +472,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
+                .setColor(0x00008B)
                 .setTitle('⚔️ GUERRA DECLARADA!')
                 .setDescription(`**${clanAtacante.nome}** declarou guerra contra **${clanDefensor.nome}**!`)
                 .addFields(
@@ -578,7 +578,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0xFF6347)
+                .setColor(0x00008B)
                 .setTitle('⚔️ ATAQUE REALIZADO!')
                 .setDescription(`**${message.author.username}** atacou o clã **${clanInimigo.nome}**!`)
                 .addFields(
@@ -639,7 +639,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle('🌌 GALÁXIA CONQUISTADA!')
                 .setDescription(`**${clan.nome}** conquistou a ${galaxiasLista[galaxiaId]}!`)
                 .addFields(
@@ -689,7 +689,7 @@ module.exports = {
         // ========== COMANDO: AJUDA ==========
         else {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🚀 Star Federation - Sistema de Clãs')
                 .setDescription('Comandos disponíveis:')
                 .addFields(
