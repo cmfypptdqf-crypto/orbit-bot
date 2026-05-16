@@ -49,7 +49,7 @@ module.exports = {
         saveDB(db);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+            .setColor(0x00008B)
             .setTitle(`<a:h_checkazul:1503775331163705614> sucesso`)
             .setDescription(`📡 Você transferiu **${amount.toLocaleString()} Orbs** para o **Orbital Bank**!`)
             .addFields(
