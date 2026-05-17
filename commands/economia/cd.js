@@ -1,18 +1,28 @@
-// commands/economia/cd.js
+// commands/economia/orbitalCD.js
 const { EmbedBuilder } = require('discord.js');
 const cooldownsManager = require('../utilidades/cooldownsManager.js');
+const { adicionarXP } = require('../utilidades/xpSystem.js');
 
 module.exports = {
-    name: 'cd',
-    aliases: ['cooldowns', 'tempo', 'wait', 'espera', 'restante', 'recarga'],
+    name: 'orbitcd',
+    aliases: ['cd', 'cooldowns', 'tempo', 'wait', 'espera', 'restante', 'recarga', 'orbitalcd'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
         const todosCooldowns = cooldownsManager.getAll(userId);
         
+        // Adicionar XP por consultar cooldowns
+        const xpGanho = 1;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'orbitcd');
+        
         const nomesComandos = {
-            'missao': '🎯 Galactic Quest', 'search': '🔍 Exploração', 'pirataria': '☄️ Pirataria',
-            'daily': '<:emoji_45:1504081355703586866> Diário', 'weekly': '<:emoji_45:1504081355703586866> Semanal', 'beg': '🎭 Esmola', 'sortudo': '🍀 Sorte'
+            'missao': '🚀 Missão Orbital',
+            'search': '🔍 Exploração Estelar',
+            'pirataria': '☄️ Pirataria Orbital',
+            'daily': '🌟 Órbita Diária',
+            'weekly': '🪐 Órbita Semanal',
+            'beg': '🎭 Esmola Estelar',
+            'sortudo': '🍀 Sorte Orbital'
         };
         
         const disponiveis = [];
@@ -21,29 +31,36 @@ module.exports = {
         for (const cmd of todosCooldowns) {
             const nome = nomesComandos[cmd.comando] || cmd.comando;
             if (cmd.available) {
-                disponiveis.push(`**${nome}** → <:emoji_46:1504081377291927632> Disponível`);
+                disponiveis.push(`**${nome}** → ✅ Disponível`);
             } else {
                 indisponiveis.push(`**${nome}** → ${cmd.formatted}`);
             }
         }
         
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle('⏰ Tempos de Recarga')
-            .setDescription(`📡 ${message.author.username}, aqui está o status:`)
-            .setThumbnail(message.author.displayAvatarURL());
+            .setColor(0x3498DB)
+            .setTitle('⏰ Orbit CD - Tempos de Recarga Orbital')
+            .setDescription(`📡 ${message.author.username}, aqui está o status dos seus comandos orbitais:`)
+            .setThumbnail(message.author.displayAvatarURL())
+            .addFields(
+                { name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta orbital)`, inline: true }
+            );
         
         if (indisponiveis.length > 0) {
-            embed.addFields({ name: '⏳ Aguardando...', value: indisponiveis.join('\n'), inline: false });
+            embed.addFields({ name: '⏳ EM RECARGA ORBITAL', value: indisponiveis.join('\n'), inline: false });
         } else {
-            embed.addFields({ name: '⏳ Aguardando...', value: '✨ Nenhum comando em recarga!', inline: false });
+            embed.addFields({ name: '⏳ EM RECARGA ORBITAL', value: '✨ Nenhum comando orbital em recarga!', inline: false });
         }
         
         if (disponiveis.length > 0) {
-            embed.addFields({ name: '<:emoji_46:1504081377291927632> Prontos', value: disponiveis.join('\n'), inline: false });
+            embed.addFields({ name: '✅ PRONTOS PARA USAR', value: disponiveis.join('\n'), inline: false });
         }
         
-        embed.setFooter({ text: `${indisponiveis.length}/${todosCooldowns.length} comandos em recarga` });
+        if (resultadoXP.levelUp) {
+            embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+        }
+        
+        embed.setFooter({ text: `${indisponiveis.length}/${todosCooldowns.length} comandos orbitais em recarga` });
         await message.reply({ embeds: [embed] });
     }
 };
