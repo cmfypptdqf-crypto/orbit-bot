@@ -140,7 +140,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle('✅ Convite Orbital Enviado!')
                 .setDescription(`Convite orbital enviado para ${user}! Use \`bt!alianca entrar\` para aceitar.`)
                 .addFields({ name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true });
