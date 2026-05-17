@@ -10,7 +10,7 @@ const sistemaLogsOrbital = require('./commands/utilidades/sistemaLogsOrbital.js'
 
 // No seu index.js, adicione os handlers:
 
-const antiRaid = require('./commands/admin/antiRaidOrbital.js');
+const antiRaid = require('./commands/utilidades/antiraid.js');
 
 // Evento de entrada de membro
 client.on('guildMemberAdd', async (member) => {
