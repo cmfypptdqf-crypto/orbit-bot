@@ -1,7 +1,8 @@
-// commands/rpg/classe.js
+// commands/rpg/classeOrbital.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { adicionarXP } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -16,12 +17,12 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-const classes = {
-    'guerreiro': { nome: '⚔️ Guerreiro', bonus: { ataque: 1.20, defesa: 1.10 }, preco: 10000, nivelMin: 10, cor: '#E74C3C' },
-    'mago': { nome: '🔮 Mago', bonus: { xp: 1.20, critico: 1.10 }, preco: 10000, nivelMin: 10, cor: '#9B59B6' },
-    'arqueiro': { nome: '🏹 Arqueiro', bonus: { precisao: 1.15, velocidade: 1.15 }, preco: 10000, nivelMin: 10, cor: '#2ECC71' },
-    'assassino': { nome: '🗡️ Assassino', bonus: { roubo: 1.25, critico: 1.20 }, preco: 15000, nivelMin: 20, cor: '#34495E' },
-    'paladino': { nome: '🛡️ Paladino', bonus: { defesa: 1.30, cura: 1.20 }, preco: 15000, nivelMin: 20, cor: '#F1C40F' }
+const classesOrbitais = {
+    'guerreiro': { nome: '⚔️ Guerreiro Orbital', bonus: { ataque: 1.20, defesa: 1.10 }, preco: 10000, nivelMin: 10, cor: '#E74C3C' },
+    'mago': { nome: '🔮 Mago Cósmico', bonus: { xp: 1.20, critico: 1.10 }, preco: 10000, nivelMin: 10, cor: '#9B59B6' },
+    'arqueiro': { nome: '🏹 Arqueiro Estelar', bonus: { precisao: 1.15, velocidade: 1.15 }, preco: 10000, nivelMin: 10, cor: '#2ECC71' },
+    'assassino': { nome: '🗡️ Assassino Orbital', bonus: { roubo: 1.25, critico: 1.20 }, preco: 15000, nivelMin: 20, cor: '#34495E' },
+    'paladino': { nome: '🛡️ Paladino Estelar', bonus: { defesa: 1.30, cura: 1.20 }, preco: 15000, nivelMin: 20, cor: '#F1C40F' }
 };
 
 function calcularNivel(xpTotal) {
@@ -30,8 +31,8 @@ function calcularNivel(xpTotal) {
 }
 
 module.exports = {
-    name: 'classe',
-    aliases: ['class', 'classe'],
+    name: 'classeorbital',
+    aliases: ['classe', 'class', 'classeorbital'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
@@ -44,30 +45,40 @@ module.exports = {
         
         const nivel = calcularNivel(db.usuarios[userId].xpTotal || 0);
         
+        // Adicionar XP por usar o comando
+        const xpGanho = 5;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'classeorbital');
+        
         if (subcmd === 'listar') {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle('⭐ Classes Disponíveis')
-                .setDescription('Use `bt!classe escolher <classe>` para se tornar um herói!');
+                .setTitle('⭐ Classes Orbitais Disponíveis')
+                .setDescription('Use `bt!classeorbital escolher <classe>` para se tornar um herói orbital!')
+                .addFields({ name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta orbital)`, inline: true });
             
-            for (const [id, classe] of Object.entries(classes)) {
+            for (const [id, classe] of Object.entries(classesOrbitais)) {
                 const liberado = nivel >= classe.nivelMin;
                 embed.addFields({
                     name: classe.nome,
-                    value: `💰 Custo: ${classe.preco.toLocaleString()} Orbs | 🎯 Nível ${classe.nivelMin}+${liberado ? ' ✅' : ' 🔒'}\n✨ Bônus: ${Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join(', ')}`,
+                    value: `💰 Custo: ${classe.preco.toLocaleString()} Orbs | 🎯 Nível Orbital ${classe.nivelMin}+${liberado ? ' ✅' : ' 🔒'}\n✨ Bônus: ${Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join(', ')}`,
                     inline: false
                 });
             }
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'escolher') {
             const classeId = args[1];
-            if (!classeId || !classes[classeId]) return message.reply('❌ Classe inválida! Use `bt!classe listar`');
+            if (!classeId || !classesOrbitais[classeId]) return message.reply('❌ Classe orbital inválida! Use `bt!classeorbital listar`');
             
-            const classe = classes[classeId];
-            if (nivel < classe.nivelMin) return message.reply(`❌ Você precisa ser nível ${classe.nivelMin}!`);
-            if ((db.usuarios[userId].carteira || 0) < classe.preco) return message.reply(`❌ Você precisa de ${classe.preco.toLocaleString()} Orbs!`);
+            const classe = classesOrbitais[classeId];
+            if (nivel < classe.nivelMin) return message.reply(`❌ Você precisa ser nível orbital ${classe.nivelMin}!`);
+            if ((db.usuarios[userId].carteira || 0) < classe.preco) return message.reply(`❌ Você precisa de ${classe.preco.toLocaleString()} Orbs orbitais!`);
             
             db.usuarios[userId].carteira -= classe.preco;
             db.usuarios[userId].classe = classeId;
@@ -75,31 +86,43 @@ module.exports = {
             
             const embed = new EmbedBuilder()
                 .setColor(classe.cor)
-                .setTitle('✅ Classe Escolhida!')
+                .setTitle('✅ Classe Orbital Escolhida!')
                 .setDescription(`Você agora é um **${classe.nome}**!`)
                 .addFields(
-                    { name: '✨ Bônus Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false }
+                    { name: '✨ Bônus Orbitais Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false },
+                    { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true }
                 );
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'info') {
             const classeId = db.usuarios[userId].classe;
-            if (!classeId) return message.reply('❌ Você não tem uma classe! Use `bt!classe escolher <classe>`');
+            if (!classeId) return message.reply('❌ Você não tem uma classe orbital! Use `bt!classeorbital escolher <classe>`');
             
-            const classe = classes[classeId];
+            const classe = classesOrbitais[classeId];
             const embed = new EmbedBuilder()
                 .setColor(classe.cor)
-                .setTitle(`📊 Classe de ${message.author.username}`)
+                .setTitle(`📊 Classe Orbital de ${message.author.username}`)
                 .setDescription(`🎭 **${classe.nome}**`)
                 .addFields(
-                    { name: '✨ Bônus Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false }
+                    { name: '✨ Bônus Orbitais Ativos', value: Object.entries(classe.bonus).map(([k, v]) => `+${Math.round((v - 1) * 100)}% ${k}`).join('\n'), inline: false },
+                    { name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta orbital)`, inline: true }
                 );
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
             await message.reply({ embeds: [embed] });
         }
         
         else {
-            await message.reply('⭐ **Sistema de Classes**\n`bt!classe listar` - Ver classes\n`bt!classe escolher <classe>` - Escolher classe\n`bt!classe info` - Sua classe');
+            await message.reply('⭐ **Sistema de Classes Orbitais**\n`bt!classeorbital listar` - Ver classes\n`bt!classeorbital escolher <classe>` - Escolher classe\n`bt!classeorbital info` - Sua classe orbital');
         }
     }
 };
