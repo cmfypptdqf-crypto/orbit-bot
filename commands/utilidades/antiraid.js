@@ -72,7 +72,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle('🛡️ Anti-Raid Orbital Ativado!')
                 .setDescription('📡 O sistema de proteção orbital está ativo!')
                 .addFields(
@@ -253,7 +253,7 @@ module.exports = {
                 }
                 else if (sub === 'lista') {
                     const embed = new EmbedBuilder()
-                        .setColor(0x00BFFF)
+                        .setColor(0x00008B)
                         .setTitle('🤖 Lista de Bots Permitidos Orbitais')
                         .setDescription(config.botsPermitidos?.length > 0 ? config.botsPermitidos.map(id => `<@${id}>`).join('\n') : 'Nenhum bot permitido')
                         .addFields(
@@ -284,7 +284,7 @@ module.exports = {
             
             else {
                 const embed = new EmbedBuilder()
-                    .setColor(0xFFD700)
+                    .setColor(0x00008B)
                     .setTitle('⚙️ Configuração Anti-Raid Orbital')
                     .setDescription('Comandos disponíveis (apenas dono do servidor):')
                     .addFields(
@@ -338,7 +338,7 @@ module.exports = {
         // ========== AJUDA ==========
         else {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('🛡️ Anti-Raid Orbital')
                 .setDescription('📡 Comandos de proteção orbital (apenas o **dono do servidor** pode configurar)')
                 .addFields(
