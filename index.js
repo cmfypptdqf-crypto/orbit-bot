@@ -6,6 +6,23 @@ const config = require('./config.json');
 const eventosLogs = require('./commands/utilidades/eventosLogs.js');
 const ticketCommand = require('./commands/utilidades/ticket.js');
 const sistemaLogsOrbital = require('./commands/utilidades/sistemaLogsOrbital.js');
+// No seu index.js, adicione os handlers:
+
+const antiRaid = require('./commands/utilidades/antiraid.js');
+
+// Evento de entrada de membro (para bots e spam)
+client.on('guildMemberAdd', async (member) => {
+    if (antiRaid.handleGuildMemberAdd) {
+        await antiRaid.handleGuildMemberAdd(member, client);
+    }
+});
+
+// Evento de mensagem (para spam)
+client.on('messageCreate', async (message) => {
+    if (antiRaid.handleMessage) {
+        await antiRaid.handleMessage(message, client);
+    }
+});
 
 client.on('interactionCreate', async (interaction) => {
     if (ticketCommand.handleInteraction) {
