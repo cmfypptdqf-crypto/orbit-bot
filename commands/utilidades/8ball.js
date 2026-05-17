@@ -33,7 +33,7 @@ module.exports = {
         const resultadoXP = adicionarXP(message.author.id, xpGanho, 'oraculo');
         
         const embed = new EmbedBuilder()
-            .setColor(0x9B59B6)
+            .setColor(0x00008B)
             .setTitle('🔮 Oráculo Orbital')
             .setDescription(`📡 Pergunta: *${pergunta}*\n\n✨ Resposta: **${resposta}**`)
             .addFields(
