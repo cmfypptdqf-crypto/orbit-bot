@@ -1,8 +1,9 @@
-// commands/economia/rank.js
+// commands/economia/rankingOrbital.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularNivel } = require('../utilidades/xpSystem.js');
+const { calcularNivel, getTituloPorNivel } = require('../utilidades/xpSystem.js');
+const { adicionarXP } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -14,8 +15,8 @@ function getDB() {
 }
 
 module.exports = {
-    name: 'rank',
-    aliases: ['liderança', 'top', 'ranking', 'leaderboard'],
+    name: 'ranking',
+    aliases: ['rank', 'liderança', 'top', 'leaderboard', 'rankingorbital'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
@@ -43,29 +44,41 @@ module.exports = {
         ranking.sort((a, b) => b.total - a.total);
         const top10 = ranking.slice(0, 10);
         
-        if (top10.length === 0) return message.reply('📊 Nenhum usuário tem Orbs ainda!');
+        if (top10.length === 0) return message.reply('📊 Nenhum explorador orbital tem Orbs ainda!');
+        
+        // Adicionar XP por consultar o ranking
+        const userId = message.author.id;
+        const xpGanho = 2;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'ranking');
         
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle('<a:f_primeirolugar:1503775329322270860> Stellar Leaderboard')
-            .setDescription(`Os maiores exploradores do universo!\n📊 Total: ${ranking.length} exploradores`)
-            .setThumbnail(message.guild.iconURL());
+            .setColor(0xFFD700)
+            .setTitle('🏆 Ranking Orbital de Riqueza')
+            .setDescription(`Os exploradores mais ricos do universo!\n📊 Total: ${ranking.length} exploradores`)
+            .setThumbnail(message.guild.iconURL())
+            .addFields(
+                { name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta ao ranking)`, inline: true }
+            );
         
         for (let i = 0; i < top10.length; i++) {
             const pos = i + 1;
-            let medalha = pos === 1 ? '<a:f_primeirolugar:1503775329322270860> ' : pos === 2 ? '🥈 ' : pos === 3 ? '🥉 ' : `${pos}. `;
-            let vipIcon = top10[i].vip ? ' <:vip:1503775357122379859>' : '';
+            let medalha = pos === 1 ? '👑 ' : pos === 2 ? '🥈 ' : pos === 3 ? '🥉 ' : `${pos}. `;
+            let vipIcon = top10[i].vip ? ' ⭐' : '';
             
             embed.addFields({
                 name: `${medalha}${top10[i].user.username}${vipIcon}`,
-                value: `<a:gcoin:1503617439202545757> ${top10[i].total.toLocaleString()} Orbs | ✨ Stellar Nível ${top10[i].nivel}`,
+                value: `💰 ${top10[i].total.toLocaleString()} Orbs | ✨ Nível ${top10[i].nivel}`,
                 inline: false
             });
         }
         
         const userRank = ranking.findIndex(r => r.user.id === message.author.id) + 1;
         if (userRank > 0) {
-            embed.setFooter({ text: `<:emoji_53:1504077672781709382> Sua posição: #${userRank} de ${ranking.length}` });
+            embed.setFooter({ text: `📍 Sua posição orbital: #${userRank} de ${ranking.length}` });
+        }
+        
+        if (resultadoXP.levelUp) {
+            embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
         }
         
         await message.reply({ embeds: [embed] });
