@@ -1,7 +1,8 @@
-// commands/rpg/conquista.js
+// commands/rpg/conquistasOrbitais.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { adicionarXP } = require('../../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -16,12 +17,12 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-const conquistas = [
-    { id: 1, nome: '🎯 Primeiros Passos', desc: 'Atingir nível 10', requisito: (data) => data.nivel >= 10, recompensa: 1000 },
-    { id: 2, nome: '💰 Primeiro Milhão', desc: 'Acumular 1.000.000 Orbs', requisito: (data) => data.totalOrbs >= 1000000, recompensa: 10000 },
+const conquistasOrbitais = [
+    { id: 1, nome: '🎯 Primeira Órbita', desc: 'Atingir nível 10', requisito: (data) => data.nivel >= 10, recompensa: 1000 },
+    { id: 2, nome: '💰 Milionário Orbital', desc: 'Acumular 1.000.000 Orbs', requisito: (data) => data.totalOrbs >= 1000000, recompensa: 10000 },
     { id: 3, nome: '⚔️ Mestre Guerreiro', desc: '100 vitórias em ataques', requisito: (data) => data.vitorias >= 100, recompensa: 5000 },
-    { id: 4, nome: '👑 Lendário', desc: 'Atingir nível 100', requisito: (data) => data.nivel >= 100, recompensa: 100000 },
-    { id: 5, nome: '🌌 Explorador', desc: '500 missões completadas', requisito: (data) => data.missoes >= 500, recompensa: 25000 }
+    { id: 4, nome: '👑 Lendário Orbital', desc: 'Atingir nível 100', requisito: (data) => data.nivel >= 100, recompensa: 100000 },
+    { id: 5, nome: '🌌 Explorador Orbital', desc: '500 missões completadas', requisito: (data) => data.missoes >= 500, recompensa: 25000 }
 ];
 
 function calcularNivel(xpTotal) {
@@ -30,8 +31,8 @@ function calcularNivel(xpTotal) {
 }
 
 module.exports = {
-    name: 'conquista',
-    aliases: ['achievement', 'conquistas'],
+    name: 'conquistas',
+    aliases: ['achievements', 'conquistasorbitais'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
@@ -45,7 +46,7 @@ module.exports = {
         const nivel = calcularNivel(userData.xpTotal || 0);
         const totalOrbs = (userData.carteira || 0) + (userData.banco || 0);
         
-        const conquistasStatus = conquistas.map(c => ({
+        const conquistasStatus = conquistasOrbitais.map(c => ({
             ...c,
             completo: c.requisito({
                 nivel,
@@ -60,8 +61,11 @@ module.exports = {
         const conquistadas = conquistasStatus.filter(c => c.coletado);
         const pendentes = conquistasStatus.filter(c => !c.completo);
         
+        const xpGanho = 10;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'conquistas');
+        
         if (subcmd === 'coletar') {
-            if (completas.length === 0) return message.reply('❌ Nenhuma conquista disponível para coletar!');
+            if (completas.length === 0) return message.reply('❌ Nenhuma conquista orbital disponível para coletar!');
             
             let totalOrbsGanho = 0;
             for (const c of completas) {
@@ -72,14 +76,26 @@ module.exports = {
             }
             saveDB(db);
             
-            await message.reply(`✅ Você coletou **${completas.length} conquistas** e ganhou **${totalOrbsGanho.toLocaleString()} Orbs**!`);
+            const embed = new EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle('🏆 Conquistas Orbitais Coletadas!')
+                .setDescription(`✅ Você coletou **${completas.length} conquistas orbitais** e ganhou **${totalOrbsGanho.toLocaleString()} Orbs**!`)
+                .addFields({ name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true });
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
+            await message.reply({ embeds: [embed] });
         }
         
         else {
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle(`🏆 Conquistas de ${message.author.username}`)
-                .setDescription(`📊 Progresso: ${conquistadas.length}/${conquistas.length} conquistas`);
+                .setTitle(`🏆 Conquistas Orbitais de ${message.author.username}`)
+                .setDescription(`📊 Progresso: ${conquistadas.length}/${conquistasOrbitais.length} conquistas`)
+                .setThumbnail(message.author.displayAvatarURL())
+                .addFields({ name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta orbital)`, inline: true });
             
             if (conquistadas.length > 0) {
                 embed.addFields({
@@ -103,7 +119,11 @@ module.exports = {
                     value: completas.map(c => `**${c.nome}** - ${c.recompensa.toLocaleString()} Orbs`).join('\n'),
                     inline: false
                 });
-                embed.setFooter({ text: 'Use bt!conquista coletar para receber suas recompensas!' });
+                embed.setFooter({ text: 'Use bt!conquistas coletar para receber suas recompensas orbitais!' });
+            }
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
             }
             
             await message.reply({ embeds: [embed] });
