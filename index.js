@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const config = require('./config.json');
 // No seu index.js, adicione o handler para o ticket:
-
+const eventosLogs = require('./commands/utilidades/eventosLogs.js');
 const ticketCommand = require('./commands/utilidades/ticket.js');
 
 client.on('interactionCreate', async (interaction) => {
