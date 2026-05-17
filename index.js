@@ -8,19 +8,51 @@ const ticketCommand = require('./commands/utilidades/ticket.js');
 const sistemaLogsOrbital = require('./commands/utilidades/sistemaLogsOrbital.js');
 // No seu index.js, adicione os handlers:
 
-const antiRaid = require('./commands/utilidades/antiraid.js');
+// No seu index.js, adicione os handlers:
 
-// Evento de entrada de membro (para bots e spam)
+const antiRaid = require('./commands/admin/antiRaidOrbital.js');
+
+// Evento de entrada de membro
 client.on('guildMemberAdd', async (member) => {
     if (antiRaid.handleGuildMemberAdd) {
         await antiRaid.handleGuildMemberAdd(member, client);
     }
 });
 
-// Evento de mensagem (para spam)
+// Evento de mensagem
 client.on('messageCreate', async (message) => {
     if (antiRaid.handleMessage) {
         await antiRaid.handleMessage(message, client);
+    }
+});
+
+// Evento de criação de canal
+client.on('channelCreate', async (channel) => {
+    if (!channel.guild) return;
+    const auditLogs = await channel.guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.ChannelCreate });
+    const log = auditLogs.entries.first();
+    if (log) {
+        await antiRaid.handleChannelAction('create', channel.guild, log.executor.id, channel);
+    }
+});
+
+// Evento de deleção de canal
+client.on('channelDelete', async (channel) => {
+    if (!channel.guild) return;
+    const auditLogs = await channel.guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.ChannelDelete });
+    const log = auditLogs.entries.first();
+    if (log) {
+        await antiRaid.handleChannelAction('delete', channel.guild, log.executor.id, channel);
+    }
+});
+
+// Evento de edição de canal
+client.on('channelUpdate', async (oldChannel, newChannel) => {
+    if (!newChannel.guild) return;
+    const auditLogs = await newChannel.guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.ChannelUpdate });
+    const log = auditLogs.entries.first();
+    if (log) {
+        await antiRaid.handleChannelAction('update', newChannel.guild, log.executor.id, newChannel);
     }
 });
 
