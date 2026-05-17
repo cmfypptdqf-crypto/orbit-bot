@@ -2,6 +2,15 @@ const { Client, GatewayIntentBits, EmbedBuilder, Collection, REST, Routes } = re
 const fs = require('fs');
 const path = require('path');
 const config = require('./config.json');
+// No seu index.js, adicione o handler para o ticket:
+
+const ticketCommand = require('./commands/utilidades/ticket.js');
+
+client.on('interactionCreate', async (interaction) => {
+    if (ticketCommand.handleInteraction) {
+        await ticketCommand.handleInteraction(interaction, client);
+    }
+});
 
 // Criar cliente do bot
 const client = new Client({
