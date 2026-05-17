@@ -12,12 +12,19 @@ class HelpMenu(View):
                 "cor": 0xF1C40F,
                 "comandos": [
                     ("daily", "Ganhe recompensa diária"),
-                    ("work", "Trabalhe para ganhar moedas"),
+                    ("semanal", "Ganhe recompensa semanal"),
+                    ("buscar", "Fazer uma explicação"),
+                    ("cassino", "Apostar em uma cor"),
+                     ("bet", "Apostra cara ou coroa"),
+                    ("luck", "Testar sua sorte"),
+                    ("quest", "Trabalhe para ganhar moedas"),
                     ("pay @user", "Envie dinheiro para alguém"),
                     ("rank", "Veja o ranking global"),
-                    ("bal", "Consulte seu saldo"),
-                    ("shop", "Compre itens na loja"),
-                    ("buy", "Compre um item específico")
+                    ("orbs", "Consulte seu saldo"),
+                    ("dep", "Depositar suas orbs"),
+                    ("sacar" "Sacar suas orbs"),
+                    ("loja", "Consultar a loja"),
+                     ("craft", "Fabricar um item")
                 ]
             },
             "🎲 Diversão": {
@@ -26,10 +33,8 @@ class HelpMenu(View):
                 "comandos": [
                     ("meme", "Veja memes aleatórios"),
                     ("8ball", "Faça uma pergunta mágica"),
-                    ("roll", "Role um dado de 1 a 6"),
-                    ("ship @user", "Calcule o match amoroso"),
-                    ("gif", "Envie um GIF aleatório"),
-                    ("coinflip", "Cara ou coroa")
+                    ("piada", "Contar uma piada"),
+                    ("ship @user", "Calcule o match amoroso")
                 ]
             },
             "⚔️ RPG": {
@@ -37,11 +42,24 @@ class HelpMenu(View):
                 "cor": 0x9B59B6,
                 "comandos": [
                     ("perfil", "Veja sua ficha de personagem"),
-                    ("batalhar", "Enfrente um inimigo"),
-                    ("inventario", "Mostra seus itens"),
-                    ("upar", "Aumente seu nível"),
-                    ("loja", "Compre equipamentos RPG"),
-                    ("ranking", "Ranking dos aventureiros")
+                    ("titulos", Ver seus titulos"),
+                    ("clan", "Montar seu clan"),
+                    ("aliança", "Montar uma aliança"),
+                    ("evoluir", "Aumente seu nível"),
+                    ("lojarotativa", "Compre equipamentos RPG"),
+                    ("boss", "Atacar um boss "),
+                    ("raid", "Fazer uma raid"),
+                    ("pvp", "Fazer uma batalha com um usuario"),
+                    ("forjar", "Melhorar seis equipamentos"),
+                    ("passe", "Ver batalha royale"),
+                    ("pet", "Compre um pet"),
+                    ("conquistas", "Ver suas conquistas"),
+                    ("skills", "Compre habilidades"),
+                    ("level", "ver seu nivel"),
+                    ("diaria", "missao diaria")
+                    
+                    
+                    
                 ]
             },
             "🛡️ Administração": {
@@ -53,7 +71,8 @@ class HelpMenu(View):
                     ("kick @user", "Expulsar do servidor"),
                     ("ban @user", "Banir permanentemente"),
                     ("slowmode", "Ativar modo lento"),
-                    ("unban", "Desbanir usuário")
+                    ("unban", "Desbanir usuário"),
+                     
                 ]
             },
             "🔨 Anti Raid": {
