@@ -1,7 +1,9 @@
-// commands/economia/depositar.js
+// commands/economia/depositoOrbital.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { getRandomFrase } = require('../utilidades/orbitAI.js');
+const { adicionarXP } = require('../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -17,8 +19,8 @@ function saveDB(data) {
 }
 
 module.exports = {
-    name: 'depositar',
-    aliases: ['dep', 'guardar'],
+    name: 'deposito',
+    aliases: ['depositar', 'dep', 'guardar', 'depositoorbital'],
     
     async executePrefix(message, args, client) {
         let amount = args[0];
@@ -32,31 +34,41 @@ module.exports = {
         let carteira = db.usuarios[userId].carteira || 0;
         let banco = db.usuarios[userId].banco || 0;
         
-        if (!amount) return message.reply('<:emoji_47:1504081397373997076> Use: `bt!depositar <valor>` ou `bt!depositar all`');
+        if (!amount) return message.reply('❌ Use: `bt!deposito <valor>` ou `bt!deposito all`');
         
         if (amount.toLowerCase() === 'all') {
             amount = carteira;
         } else {
             amount = parseInt(amount);
-            if (isNaN(amount)) return message.reply('<:emoji_47:1504081397373997076> Digite um número válido!');
+            if (isNaN(amount)) return message.reply('❌ Digite um valor orbital válido!');
         }
         
-        if (amount <= 0) return message.reply('<:emoji_47:1504081397373997076> Digite um valor positivo!');
-        if (amount > carteira) return message.reply(`<:emoji_47:1504081397373997076> Você só tem ${carteira.toLocaleString()} Orbs!`);
+        if (amount <= 0) return message.reply('❌ Digite um valor orbital positivo!');
+        if (amount > carteira) return message.reply(`❌ Você só tem ${carteira.toLocaleString()} Orbs em seu Núcleo Orbital!`);
         
         db.usuarios[userId].carteira = carteira - amount;
         db.usuarios[userId].banco = banco + amount;
+        
+        // Adicionar XP pelo depósito
+        const xpGanho = Math.max(1, Math.floor(amount / 100));
+        const resultadoXP = adicionarXP(userId, xpGanho, 'deposito');
+        
         saveDB(db);
         
         const embed = new EmbedBuilder()
-            .setColor(0x00008B)
-            .setTitle(`<a:h_checkazul:1503775331163705614> sucesso`)
+            .setColor(0x00BFFF)
+            .setTitle(`🏦 ${getRandomFrase('sucesso')}`)
             .setDescription(`📡 Você transferiu **${amount.toLocaleString()} Orbs** para o **Orbital Bank**!`)
             .addFields(
-                { name: '<a:gcoin:1503617439202545757> Nucleo', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
-                { name: '<a:gcoin:1503617439202545757> Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true }
+                { name: '💵 Núcleo Orbital', value: `${db.usuarios[userId].carteira.toLocaleString()} Orbs`, inline: true },
+                { name: '🏦 Orbital Bank', value: `${db.usuarios[userId].banco.toLocaleString()} Orbs`, inline: true },
+                { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true }
             )
-            .setFooter({ text: '✨ Orbital Bank • Fundos garantidos pela Federação' });
+            .setFooter({ text: '✨ Orbital Bank • Fundos garantidos pela Federação Estelar' });
+        
+        if (resultadoXP.levelUp) {
+            embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+        }
         
         await message.reply({ embeds: [embed] });
     }
