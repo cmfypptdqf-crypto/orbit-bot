@@ -2,10 +2,10 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularBonusTotal } = require('../utilidades/galaxiaBonus.js');
-const { getRandomFrase, checkRandomEvent, processEvent } = require('../utilidades/orbitAI.js');
-const cooldownsManager = require('../utilidades/cooldownsManager.js');
-const { adicionarXP, calcularXPporGanho } = require('../utilidades/xpSystem.js');
+const { calcularBonusTotal } = require('../../utilidades/galaxiaBonus.js');
+const { getRandomFrase, checkRandomEvent, processEvent } = require('../../utilidades/orbitAI.js');
+const cooldownsManager = require('../../utilidades/cooldownsManager.js');
+const { adicionarXP, calcularXPporGanho } = require('../../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -22,7 +22,7 @@ function saveDB(data) {
 
 module.exports = {
     name: 'orbita',
-    aliases: ['orbitaDiaria', 'daily', 'diario', 'orbita'],
+    aliases: ['daily', 'diario', 'diário', 'bonus', 'orbita'],
     
     async executePrefix(message, args, client) {
         const userId = message.author.id;
@@ -58,14 +58,18 @@ module.exports = {
             .setDescription(`📡 Sua **Órbita Diária** foi ativada, comandante!`)
             .addFields(
                 { name: '🎁 Bônus Orbital', value: `${bonusBase.toLocaleString()} Orbs`, inline: true },
-                { name: '✨ Multiplicadores Orbitais', value: bonusInfo.texto, inline: true },
-                { name: '💰 Orbs Recebidos', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
+                { name: '✨ Multiplicadores', value: bonusInfo.texto, inline: true },
+                { name: '💰 Recebido', value: `+${bonusFinal.toLocaleString()} Orbs`, inline: true },
                 { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true }
             )
             .setFooter({ text: '🌌 Orbit • Sua próxima órbita estará disponível amanhã!' });
         
         if (eventoResultado) {
-            embed.addFields({ name: '🎲 EVENTO CÓSMICO!', value: eventoResultado.mensagem, inline: false });
+            embed.addFields({ name: '🎲 EVENTO ORBITAL!', value: eventoResultado.mensagem, inline: false });
+        }
+        
+        if (resultadoXP?.levelUp) {
+            embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
         }
         
         await message.reply({ embeds: [embed] });
