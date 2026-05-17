@@ -15,8 +15,8 @@ function getDB() {
 }
 
 module.exports = {
-    name: 'rankingglobal',
-    aliases: ['rankglobal', 'globalrank', 'topglobal', 'liderancaglobal'],
+    name: 'rank',
+    aliases: ['ranking', 'top', 'liderança'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
