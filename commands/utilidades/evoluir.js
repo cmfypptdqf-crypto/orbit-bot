@@ -1,8 +1,8 @@
-// commands/rpg/evoluir.js
+// commands/rpg/evolucaoOrbital.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { adicionarXP } = require('../utilidades/xpSystem.js');
+const { adicionarXP } = require('../../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
@@ -17,12 +17,12 @@ function saveDB(data) {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 }
 
-const evolucoes = {
-    '1': { nome: '🌟 Estagiário', reqMissoes: 10, reqOrbs: 0, bonus: 1.05, nivel: 10 },
-    '2': { nome: '⚔️ Guerreiro', reqMissoes: 50, reqOrbs: 10000, bonus: 1.10, nivel: 25 },
-    '3': { nome: '🛡️ Cavaleiro', reqMissoes: 100, reqOrbs: 50000, bonus: 1.15, nivel: 50 },
-    '4': { nome: '👑 Lorde', reqMissoes: 200, reqOrbs: 100000, bonus: 1.20, nivel: 75 },
-    '5': { nome: '✨ Divindade', reqMissoes: 500, reqOrbs: 500000, bonus: 1.30, nivel: 100 }
+const evolucoesOrbitais = {
+    '1': { nome: '🌟 Estagiário Orbital', reqMissoes: 10, reqOrbs: 0, bonus: 1.05, nivel: 10 },
+    '2': { nome: '⚔️ Guerreiro Estelar', reqMissoes: 50, reqOrbs: 10000, bonus: 1.10, nivel: 25 },
+    '3': { nome: '🛡️ Cavaleiro Orbital', reqMissoes: 100, reqOrbs: 50000, bonus: 1.15, nivel: 50 },
+    '4': { nome: '👑 Lorde Cósmico', reqMissoes: 200, reqOrbs: 100000, bonus: 1.20, nivel: 75 },
+    '5': { nome: '✨ Divindade Orbital', reqMissoes: 500, reqOrbs: 500000, bonus: 1.30, nivel: 100 }
 };
 
 function calcularNivel(xpTotal) {
@@ -31,8 +31,8 @@ function calcularNivel(xpTotal) {
 }
 
 module.exports = {
-    name: 'evoluir',
-    aliases: ['evolucao', 'upgrade'],
+    name: 'evolucao',
+    aliases: ['evoluir', 'evolucaoorbital', 'upgrade'],
     
     async executePrefix(message, args, client) {
         const subcmd = args[0]?.toLowerCase();
@@ -46,36 +46,45 @@ module.exports = {
         const nivel = calcularNivel(db.usuarios[userId].xpTotal || 0);
         const missoes = db.usuarios[userId].total_missoes || 0;
         const evolucaoAtual = db.usuarios[userId].evolucao || 1;
-        const proximaEvolucao = evolucoes[evolucaoAtual + 1];
+        const proximaEvolucao = evolucoesOrbitais[evolucaoAtual + 1];
+        
+        const xpGanho = 15;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'evolucao');
         
         if (subcmd === 'status') {
-            const atual = evolucoes[evolucaoAtual];
+            const atual = evolucoesOrbitais[evolucaoAtual];
             const embed = new EmbedBuilder()
                 .setColor(0xFFD700)
-                .setTitle(`📊 Evolução de ${message.author.username}`)
-                .setDescription(`🎯 Evolução Atual: **${atual.nome}** (+${Math.round((atual.bonus - 1) * 100)}% em tudo)`)
+                .setTitle(`📊 Evolução Orbital de ${message.author.username}`)
+                .setDescription(`🎯 Evolução Atual: **${atual.nome}** (+${Math.round((atual.bonus - 1) * 100)}% orbital)`)
                 .addFields(
-                    { name: '📈 Bônus Ativo', value: `✨ +${Math.round((atual.bonus - 1) * 100)}% em todos ganhos`, inline: true }
+                    { name: '📈 Bônus Orbital Ativo', value: `✨ +${Math.round((atual.bonus - 1) * 100)}% em todos ganhos`, inline: true },
+                    { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true }
                 );
             
             if (proximaEvolucao) {
                 embed.addFields({
-                    name: '🎯 Próxima Evolução',
+                    name: '🎯 Próxima Evolução Orbital',
                     value: `**${proximaEvolucao.nome}**\n📊 Requer: Nível ${proximaEvolucao.nivel} | ${proximaEvolucao.reqMissoes} missões | ${proximaEvolucao.reqOrbs.toLocaleString()} Orbs`,
                     inline: false
                 });
             } else {
-                embed.addFields({ name: '🏆 Máximo Alcançado!', value: 'Parabéns! Você atingiu a evolução máxima!', inline: false });
+                embed.addFields({ name: '🏆 Máximo Orbital Alcançado!', value: 'Parabéns! Você atingiu a evolução orbital máxima!', inline: false });
             }
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
             await message.reply({ embeds: [embed] });
         }
         
         else if (subcmd === 'realizar') {
-            if (!proximaEvolucao) return message.reply('❌ Você já atingiu a evolução máxima!');
+            if (!proximaEvolucao) return message.reply('❌ Você já atingiu a evolução orbital máxima!');
             
-            if (nivel < proximaEvolucao.nivel) return message.reply(`❌ Você precisa ser nível ${proximaEvolucao.nivel}!`);
-            if (missoes < proximaEvolucao.reqMissoes) return message.reply(`❌ Você precisa completar ${proximaEvolucao.reqMissoes} missões! (Atualmente: ${missoes})`);
-            if ((db.usuarios[userId].carteira || 0) < proximaEvolucao.reqOrbs) return message.reply(`❌ Você precisa de ${proximaEvolucao.reqOrbs.toLocaleString()} Orbs!`);
+            if (nivel < proximaEvolucao.nivel) return message.reply(`❌ Você precisa ser nível orbital ${proximaEvolucao.nivel}!`);
+            if (missoes < proximaEvolucao.reqMissoes) return message.reply(`❌ Você precisa completar ${proximaEvolucao.reqMissoes} missões orbitais! (Atualmente: ${missoes})`);
+            if ((db.usuarios[userId].carteira || 0) < proximaEvolucao.reqOrbs) return message.reply(`❌ Você precisa de ${proximaEvolucao.reqOrbs.toLocaleString()} Orbs orbitais!`);
             
             db.usuarios[userId].carteira -= proximaEvolucao.reqOrbs;
             db.usuarios[userId].evolucao = evolucaoAtual + 1;
@@ -83,16 +92,22 @@ module.exports = {
             
             const embed = new EmbedBuilder()
                 .setColor(0x00FF00)
-                .setTitle('🎉 EVOLUÇÃO REALIZADA!')
+                .setTitle('🎉 EVOLUÇÃO ORBITAL REALIZADA!')
                 .setDescription(`Parabéns! Você evoluiu para **${proximaEvolucao.nome}**!`)
                 .addFields(
-                    { name: '✨ Novo Bônus', value: `+${Math.round((proximaEvolucao.bonus - 1) * 100)}% em todos ganhos`, inline: true }
+                    { name: '✨ Novo Bônus Orbital', value: `+${Math.round((proximaEvolucao.bonus - 1) * 100)}% em todos ganhos`, inline: true },
+                    { name: '⭐ Stellar XP', value: `+${xpGanho} XP`, inline: true }
                 );
+            
+            if (resultadoXP.levelUp) {
+                embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            }
+            
             await message.reply({ embeds: [embed] });
         }
         
         else {
-            await message.reply('🌟 **Sistema de Evolução**\n`bt!evoluir status` - Ver status\n`bt!evoluir realizar` - Realizar evolução');
+            await message.reply('🌟 **Sistema de Evolução Orbital**\n`bt!evolucao status` - Ver status orbital\n`bt!evolucao realizar` - Realizar evolução orbital');
         }
     }
 };
