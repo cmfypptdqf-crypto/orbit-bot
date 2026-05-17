@@ -1,25 +1,26 @@
-// commands/economia/rankingOrbital.js
+// commands/economia/rankingGlobalOrbital.js
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { calcularNivel, getTituloPorNivel } = require('../utilidades/xpSystem.js');
-const { adicionarXP } = require('../utilidades/xpSystem.js');
+const { calcularNivel, getTituloPorNivel } = require('../../utilidades/xpSystem.js');
+const { adicionarXP } = require('../../utilidades/xpSystem.js');
 
 const dbPath = path.join(__dirname, '..', '..', 'database.json');
 
 function getDB() {
     if (!fs.existsSync(dbPath)) {
-        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {}, vip_list: {} }));
+        fs.writeFileSync(dbPath, JSON.stringify({ usuarios: {} }));
     }
     return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 }
 
 module.exports = {
-    name: 'ranking',
-    aliases: ['rank', 'liderança', 'top', 'leaderboard', 'rankingorbital'],
+    name: 'rankingglobal',
+    aliases: ['rankglobal', 'globalrank', 'topglobal', 'liderancaglobal'],
     
     async executePrefix(message, args, client) {
         const db = getDB();
+        const userId = message.author.id;
         
         const ranking = [];
         for (const [userId, data] of Object.entries(db.usuarios)) {
@@ -27,13 +28,11 @@ module.exports = {
             if (total > 0) {
                 try {
                     const user = await client.users.fetch(userId);
-                    const isVip = db.vip_list && db.vip_list[userId] && db.vip_list[userId].expira > Date.now();
                     const nivel = calcularNivel(data.xpTotal || 0);
                     
                     ranking.push({
                         user: user,
                         total: total,
-                        vip: isVip,
                         nivel: nivel,
                         missoes: data.total_missoes || 0
                     });
@@ -46,27 +45,22 @@ module.exports = {
         
         if (top10.length === 0) return message.reply('📊 Nenhum explorador orbital tem Orbs ainda!');
         
-        // Adicionar XP por consultar o ranking
-        const userId = message.author.id;
-        const xpGanho = 2;
-        const resultadoXP = adicionarXP(userId, xpGanho, 'ranking');
+        const xpGanho = 5;
+        const resultadoXP = adicionarXP(userId, xpGanho, 'rankingglobal');
         
         const embed = new EmbedBuilder()
             .setColor(0xFFD700)
-            .setTitle('🏆 Ranking Orbital de Riqueza')
+            .setTitle('🌍 Ranking Global Orbital')
             .setDescription(`Os exploradores mais ricos do universo!\n📊 Total: ${ranking.length} exploradores`)
             .setThumbnail(message.guild.iconURL())
-            .addFields(
-                { name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta ao ranking)`, inline: true }
-            );
+            .addFields({ name: '⭐ Stellar XP', value: `+${xpGanho} XP (consulta global)`, inline: true });
         
         for (let i = 0; i < top10.length; i++) {
             const pos = i + 1;
             let medalha = pos === 1 ? '👑 ' : pos === 2 ? '🥈 ' : pos === 3 ? '🥉 ' : `${pos}. `;
-            let vipIcon = top10[i].vip ? ' ⭐' : '';
             
             embed.addFields({
-                name: `${medalha}${top10[i].user.username}${vipIcon}`,
+                name: `${medalha}${top10[i].user.username}`,
                 value: `💰 ${top10[i].total.toLocaleString()} Orbs | ✨ Nível ${top10[i].nivel}`,
                 inline: false
             });
@@ -74,11 +68,11 @@ module.exports = {
         
         const userRank = ranking.findIndex(r => r.user.id === message.author.id) + 1;
         if (userRank > 0) {
-            embed.setFooter({ text: `📍 Sua posição orbital: #${userRank} de ${ranking.length}` });
+            embed.setFooter({ text: `📍 Sua posição orbital global: #${userRank} de ${ranking.length}` });
         }
         
         if (resultadoXP.levelUp) {
-            embed.addFields({ name: '🎉 LEVEL UP ORBITAL!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
+            embed.addFields({ name: '🎉 LEVEL UP!', value: `Parabéns! Você avançou para o nível ${resultadoXP.nivelNovo}!`, inline: false });
         }
         
         await message.reply({ embeds: [embed] });
