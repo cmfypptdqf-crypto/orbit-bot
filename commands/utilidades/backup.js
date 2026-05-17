@@ -16,7 +16,7 @@ module.exports = {
         
         try {
             const embed = new EmbedBuilder()
-                .setColor(0xFFD700)
+                .setColor(0x00008B)
                 .setTitle('💾 Backup Orbital Iniciado')
                 .setDescription('📡 Criando backup orbital do servidor...')
                 .setFooter({ text: '🌌 Orbit • Processando dados' });
@@ -59,7 +59,7 @@ module.exports = {
             fs.writeFileSync(backupPath, JSON.stringify(backup, null, 2));
             
             const embedFinal = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle('💾 Backup Orbital Concluído!')
                 .setDescription(`📡 Backup do servidor **${guild.name}** criado com sucesso!`)
                 .addFields(
