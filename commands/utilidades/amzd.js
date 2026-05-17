@@ -47,7 +47,7 @@ module.exports = {
             saveDB(db);
             
             const embed = new EmbedBuilder()
-                .setColor(0x00FF00)
+                .setColor(0x00008B)
                 .setTitle('🤝 Amizade Orbital!')
                 .setDescription(`✨ ${message.author} e ${user.username} agora são amigos orbitais!`)
                 .addFields(
@@ -102,7 +102,7 @@ module.exports = {
             }
             
             const embed = new EmbedBuilder()
-                .setColor(0x00BFFF)
+                .setColor(0x00008B)
                 .setTitle(`🤝 Amizades Orbitais de ${message.author.username}`)
                 .setThumbnail(message.author.displayAvatarURL())
                 .setDescription(amigos.join('\n') || '🌌 Nenhuma amizade orbital ainda.')
@@ -121,7 +121,7 @@ module.exports = {
         // ========== AJUDA ==========
         else {
             const embed = new EmbedBuilder()
-                .setColor(0x00BFFF)
+                .setColor(0x00008B)
                 .setTitle('🤝 Amizade Orbital - Sistema de Amizade')
                 .setDescription('Comandos orbitais disponíveis:')
                 .addFields(
